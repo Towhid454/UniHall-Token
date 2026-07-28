@@ -29,7 +29,8 @@ const getTransporter = () => {
     ...smtpConfig,
     connectionTimeout: 8000, // max 8s to establish TCP connection
     greetingTimeout: 8000, // max 8s for SMTP server greeting
-    socketTimeout: 10000, // max 10s of socket inactivity
+    socketTimeout: 10000,
+    family: 4, // max 10s of socket inactivity
   });
   return transporter;
 };
