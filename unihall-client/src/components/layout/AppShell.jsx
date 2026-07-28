@@ -16,6 +16,10 @@ const AppShell = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const hallName = user?.hall?.name;
+  const universityShort = user?.university?.shortName;
+  const badgeLetter = (hallName || "U").charAt(0).toUpperCase();
+
   return (
     <div
       style={{
@@ -41,7 +45,7 @@ const AppShell = ({ children }) => {
           height: "64px",
         }}
       >
-        {/* Logo */}
+        {/* Hall Identity */}
         <div
           style={{
             display: "flex",
@@ -53,34 +57,72 @@ const AppShell = ({ children }) => {
         >
           <div
             style={{
-              width: "36px",
-              height: "36px",
-              background: "rgba(255,255,255,0.2)",
-              borderRadius: "10px",
+              width: "38px",
+              height: "38px",
+              background: "rgba(255,255,255,0.18)",
+              borderRadius: "11px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "16px",
+              fontSize: "17px",
               fontWeight: "900",
               color: "white",
-              border: "1px solid rgba(255,255,255,0.3)",
+              border: "1px solid rgba(255,255,255,0.35)",
+              flexShrink: 0,
             }}
           >
-            U
+            {badgeLetter}
           </div>
           <div>
             <div
               style={{
-                color: "white",
-                fontWeight: "800",
-                fontSize: "16px",
-                lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              UniHall
+              <div
+                style={{
+                  color: "white",
+                  fontWeight: "800",
+                  fontSize: "15px",
+                  lineHeight: 1.15,
+                  maxWidth: "220px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {hallName || "UniHall"}
+              </div>
+              {universityShort && (
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                    color: "#1e293b",
+                    fontSize: "10px",
+                    fontWeight: "800",
+                    letterSpacing: "0.4px",
+                    padding: "2px 8px",
+                    borderRadius: "6px",
+                    boxShadow: "0 2px 6px rgba(245,158,11,0.4)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {universityShort}
+                </span>
+              )}
             </div>
-            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "10px" }}>
-              Smart Hall Management
+            <div
+              style={{
+                color: "rgba(255,255,255,0.7)",
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "0.3px",
+                marginTop: "2px",
+              }}
+            >
+              Student Portal
             </div>
           </div>
         </div>
@@ -129,7 +171,7 @@ const AppShell = ({ children }) => {
               {user?.name}
             </div>
             <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px" }}>
-              {user?.hall?.name}
+              {user?.studentId || user?.email}
             </div>
           </div>
           <div
@@ -193,9 +235,11 @@ const AppShell = ({ children }) => {
         }}
       >
         <div style={{ fontSize: "12px", color: "#94a3b8" }}>
-          © 2026 UniHall Smart Hall Management System
+          {hallName ? `© 2026 ${hallName}` : "© 2026 UniHall"}
         </div>
-        <div style={{ fontSize: "12px", color: "#cbd5e1" }}>Version 1.0.0</div>
+        <div style={{ fontSize: "11px", color: "#cbd5e1" }}>
+          Powered by UniHall · v1.0.0
+        </div>
       </div>
     </div>
   );

@@ -2,40 +2,34 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
+import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import DashboardPage from "./pages/student/DashboardPage";
 import ProfilePage from "./pages/student/ProfilePage";
 import DiningPage from "./pages/student/DiningPage";
 import TodayTokensPage from "./pages/student/TodayTokensPage";
+import DiningReviewPage from "./pages/student/DiningReviewPage";
 import WalletPage from "./pages/student/WalletPage";
 import RoomAllotmentPage from "./pages/student/RoomAllotmentPage";
+import HallFeePage from "./pages/student/HallFeePage";
 import FeedbackPage from "./pages/student/FeedbackPage";
 import SupportPage from "./pages/student/SupportPage";
 import HallDashboard from "./pages/admin/hall/HallDashboard";
 import HallAllotments from "./pages/admin/hall/HallAllotments";
 import HallStudents from "./pages/admin/hall/HallStudents";
 import HallTickets from "./pages/admin/hall/HallTickets";
-// Placeholder for upcoming pages
-const Placeholder = ({ title }) => (
-  <div
-    style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#f1f5f9",
-    }}
-  >
-    <div style={{ textAlign: "center" }}>
-      <div style={{ fontSize: "40px", marginBottom: "12px" }}>🚧</div>
-      <div style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a" }}>
-        {title}
-      </div>
-      <div style={{ color: "#94a3b8", fontSize: "14px", marginTop: "4px" }}>
-        Coming soon...
-      </div>
-    </div>
-  </div>
-);
+import HallDining from "./pages/admin/hall/HallDining";
+import HallFees from "./pages/admin/hall/HallFees";
+import HallRooms from "./pages/admin/hall/HallRooms";
+import UniversityAdminDashboard from "./pages/admin/university/UniversityAdminDashboard";
+import UniversityAdminHalls from "./pages/admin/university/UniversityAdminHalls";
+import CrossHallReport from "./pages/admin/university/CrossHallReport";
+import SuperAdminDashboard from "./pages/admin/super/SuperAdminDashboard";
+import SuperAdminUniversities from "./pages/admin/super/SuperAdminUniversities";
+import SuperAdminUsers from "./pages/admin/super/SuperAdminUsers";
+import UniversityDetail from "./pages/admin/super/UniversityDetail";
+import HallDetail from "./pages/admin/super/HallDetail";
 
 const App = () => {
   return (
@@ -43,7 +37,9 @@ const App = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       {/* Student Routes */}
       <Route
         path="/dashboard"
@@ -81,7 +77,7 @@ const App = () => {
         path="/dining/review"
         element={
           <ProtectedRoute roles={["student"]}>
-            <Placeholder title="Dining Review" />
+            <DiningReviewPage />
           </ProtectedRoute>
         }
       />
@@ -105,7 +101,7 @@ const App = () => {
         path="/hall-fee"
         element={
           <ProtectedRoute roles={["student"]}>
-            <Placeholder title="Hall Fee" />
+            <HallFeePage />
           </ProtectedRoute>
         }
       />
@@ -125,7 +121,7 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+
       {/* Hall Admin Routes */}
       <Route
         path="/admin/hall"
@@ -155,7 +151,23 @@ const App = () => {
         path="/admin/hall/dining"
         element={
           <ProtectedRoute roles={["hallAdmin"]}>
-            <Placeholder title="Dining Management" />
+            <HallDining />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/hall/fees"
+        element={
+          <ProtectedRoute roles={["hallAdmin"]}>
+            <HallFees />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/hall/rooms"
+        element={
+          <ProtectedRoute roles={["hallAdmin"]}>
+            <HallRooms />
           </ProtectedRoute>
         }
       />
@@ -167,6 +179,77 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* University Admin Routes */}
+      <Route
+        path="/admin/university"
+        element={
+          <ProtectedRoute roles={["universityAdmin"]}>
+            <UniversityAdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/university/halls"
+        element={
+          <ProtectedRoute roles={["universityAdmin"]}>
+            <UniversityAdminHalls />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/university/report"
+        element={
+          <ProtectedRoute roles={["universityAdmin"]}>
+            <CrossHallReport />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Super Admin Routes */}
+      <Route
+        path="/admin/super"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/super/universities"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <SuperAdminUniversities />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/super/universities/:id"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <UniversityDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/super/halls/:id"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <HallDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/super/users"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <SuperAdminUsers />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch-all — must stay LAST */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };

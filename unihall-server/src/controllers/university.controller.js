@@ -27,7 +27,7 @@ const getHallsByUniversity = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, halls, "Halls fetched"));
 });
 
-// POST /api/universities — superAdmin only (protected, added in Step 5+)
+// POST /api/universities — superAdmin only (protected via routes)
 const createUniversity = asyncHandler(async (req, res) => {
   const { name, shortName, code, emailDomain, logoUrl, address, website } =
     req.body;
@@ -55,12 +55,24 @@ const createUniversity = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, university, "University created"));
 });
 
-// POST /api/universities/:id/halls — universityAdmin only (protected, added in Step 5+)
+// POST /api/universities/:id/halls — universityAdmin only (protected via routes)
 const createHall = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, code, totalRooms, provostName, address } = req.body;
 
   if (!name || !code) throw new ApiError(400, "name and code are required");
+
+  // EXTRA SECURITY: If the logged-in user is a University Admin,
+  // ensure they are only creating a hall for their OWN university.
+  if (
+    req.user.role === "universityAdmin" &&
+    req.user.university?.toString() !== id
+  ) {
+    throw new ApiError(
+      403,
+      "You are not authorized to create a hall for this university",
+    );
+  }
 
   const university = await University.findById(id);
   if (!university) throw new ApiError(404, "University not found");

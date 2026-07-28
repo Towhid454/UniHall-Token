@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createDiningPlan,
   getDiningPlans,
+  getHallDiningPlans,
   purchaseDiningPlan,
   getMyTokens,
   scanToken,
@@ -18,6 +19,7 @@ router.get("/tokens", restrictTo("student"), getMyTokens);
 
 // Hall Admin routes
 router.post("/plans", restrictTo("hallAdmin"), createDiningPlan);
+router.get("/hall-plans", restrictTo("hallAdmin"), getHallDiningPlans);
 router.post("/scan", restrictTo("hallAdmin"), scanToken);
 
 module.exports = router;

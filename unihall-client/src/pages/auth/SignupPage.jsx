@@ -62,7 +62,9 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await api.post("/auth/signup", form);
-      toast.success("Account created! Please sign in.");
+      toast.success("Account created! Check your email to verify before signing in.", {
+        duration: 5000,
+      });
       navigate("/login");
     } catch (err) {
       toast.error(err.response?.data?.message || "Signup failed");

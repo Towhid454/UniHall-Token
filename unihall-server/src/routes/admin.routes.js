@@ -18,6 +18,8 @@ const {
   updateUniversityStatus,
   assignUniversityAdmin,
   getAllUsers,
+  getUniversityDetail,
+  getHallDetail,
 } = require("../controllers/admin.controller");
 const { protect, restrictTo } = require("../middlewares/auth.middleware");
 
@@ -85,6 +87,12 @@ router.get(
   restrictTo("superAdmin"),
   getAllUniversitiesAdmin,
 );
+router.get(
+  "/super-admin/universities/:id",
+  restrictTo("superAdmin"),
+  getUniversityDetail,
+);
+router.get("/super-admin/halls/:id", restrictTo("superAdmin"), getHallDetail);
 router.post(
   "/super-admin/universities",
   restrictTo("superAdmin"),

@@ -11,6 +11,7 @@ const diningRoutes = require("./routes/dining.routes");
 const walletRoutes = require("./routes/wallet.routes");
 const feedbackRoutes = require("./routes/feedback.routes");
 const adminRoutes = require("./routes/admin.routes");
+const hallFeeRoutes = require("./routes/hallFee.routes");
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/api/dining", diningRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api", feedbackRoutes);
 app.use("/api", adminRoutes);
+app.use("/api", hallFeeRoutes);
 
 app.use(errorMiddleware);
 

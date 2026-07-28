@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import AppShell from "../../components/layout/AppShell";
 import api from "../../api/axios";
+import { SkeletonBox } from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
 
 const CATEGORIES = [
   {
@@ -27,6 +29,14 @@ const CATEGORIES = [
     bg: "rgba(236,72,153,0.1)",
   },
 ];
+
+const ALL_FILTER = {
+  value: "all",
+  label: "All",
+  icon: "📋",
+  color: "#0d9488",
+  bg: "rgba(13,148,136,0.1)",
+};
 
 const STATUS_CONFIG = {
   pending: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)", label: "Pending" },
@@ -61,11 +71,50 @@ const StarRating = ({ value, onChange }) => (
   </div>
 );
 
+const FeedbackCardSkeleton = () => (
+  <div
+    style={{
+      background: "white",
+      borderRadius: "18px",
+      marginBottom: "12px",
+      overflow: "hidden",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+    }}
+  >
+    <SkeletonBox height="3px" radius="0" />
+    <div style={{ padding: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <SkeletonBox width="38px" height="38px" radius="11px" />
+          <div>
+            <SkeletonBox
+              height="13px"
+              width="70px"
+              style={{ marginBottom: "6px" }}
+            />
+            <SkeletonBox height="11px" width="90px" />
+          </div>
+        </div>
+        <SkeletonBox width="70px" height="18px" radius="20px" />
+      </div>
+      <SkeletonBox height="40px" radius="10px" />
+    </div>
+  </div>
+);
+
 const FeedbackPage = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [form, setForm] = useState({
     category: "dining",
     message: "",
@@ -74,11 +123,10 @@ const FeedbackPage = () => {
 
   const fetchFeedbacks = async () => {
     try {
-      // Get own feedbacks — we'll filter by student from all returned
-      const res = await api.get("/feedback", { params: { limit: 20 } });
+      const res = await api.get("/feedback/my");
       setFeedbacks(res.data.data || []);
-    } catch {
-      // If forbidden (student can't GET all), just show empty
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load feedbacks");
       setFeedbacks([]);
     } finally {
       setLoading(false);
@@ -106,31 +154,10 @@ const FeedbackPage = () => {
     }
   };
 
-  if (loading)
-    return (
-      <AppShell>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              border: "3px solid #e2e8f0",
-              borderTop: "3px solid #ec4899",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      </AppShell>
-    );
+  const visibleFeedbacks =
+    activeFilter === "all"
+      ? feedbacks
+      : feedbacks.filter((fb) => fb.category === activeFilter);
 
   return (
     <AppShell>
@@ -188,66 +215,61 @@ const FeedbackPage = () => {
             paddingBottom: "4px",
           }}
         >
-          {[
-            {
-              value: "all",
-              label: "All",
-              icon: "📋",
-              color: "#0d9488",
-              bg: "rgba(13,148,136,0.1)",
-            },
-            ...CATEGORIES,
-          ].map((cat) => (
-            <button
-              key={cat.value}
-              style={{
-                background: cat.bg,
-                border: `1.5px solid ${cat.color}33`,
-                borderRadius: "20px",
-                padding: "7px 14px",
-                color: cat.color,
-                fontSize: "12px",
-                fontWeight: "700",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              {cat.icon} {cat.label}
-            </button>
-          ))}
+          {[ALL_FILTER, ...CATEGORIES].map((cat) => {
+            const isActive = activeFilter === cat.value;
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setActiveFilter(cat.value)}
+                style={{
+                  background: isActive ? cat.color : cat.bg,
+                  border: `1.5px solid ${cat.color}`,
+                  borderRadius: "20px",
+                  padding: "7px 14px",
+                  color: isActive ? "white" : cat.color,
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  transition: "all 0.15s",
+                }}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Feedback List */}
-        {feedbacks.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+        {loading ? (
+          <div>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <FeedbackCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : visibleFeedbacks.length === 0 ? (
+          <div
             style={{
               background: "white",
               borderRadius: "20px",
-              padding: "56px 24px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "52px", marginBottom: "12px" }}>😊</div>
-            <div
-              style={{ fontWeight: "700", color: "#0f172a", fontSize: "16px" }}
-            >
-              No feedbacks yet!
-            </div>
-            <div
-              style={{ color: "#94a3b8", fontSize: "13px", marginTop: "6px" }}
-            >
-              Tap <strong style={{ color: "#ec4899" }}>+</strong> to share your
-              thoughts ✨
-            </div>
-          </motion.div>
+            <EmptyState
+              icon="😊"
+              title={
+                activeFilter === "all"
+                  ? "No feedbacks yet!"
+                  : `No ${activeFilter} feedbacks yet!`
+              }
+              subtitle="Tap + to share your thoughts ✨"
+            />
+          </div>
         ) : (
-          feedbacks.map((fb, i) => {
+          visibleFeedbacks.map((fb, i) => {
             const cat =
               CATEGORIES.find((c) => c.value === fb.category) || CATEGORIES[2];
             const st = STATUS_CONFIG[fb.status] || STATUS_CONFIG.pending;

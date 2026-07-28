@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import AdminShell from "../../../components/layout/AdminShell";
 import api from "../../../api/axios";
+import { SkeletonBox } from "../../../components/ui/Skeleton";
+import EmptyState from "../../../components/ui/EmptyState";
 
 const STATUS_CONFIG = {
   pending: {
@@ -24,6 +26,54 @@ const STATUS_CONFIG = {
     label: "Rejected",
   },
 };
+
+const AllotmentCardSkeleton = () => (
+  <div
+    style={{
+      background: "white",
+      borderRadius: "18px",
+      marginBottom: "12px",
+      overflow: "hidden",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+    }}
+  >
+    <SkeletonBox height="3px" radius="0" />
+    <div style={{ padding: "16px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "12px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <SkeletonBox width="40px" height="40px" radius="12px" />
+          <div>
+            <SkeletonBox
+              height="14px"
+              width="100px"
+              style={{ marginBottom: "6px" }}
+            />
+            <SkeletonBox height="11px" width="70px" />
+          </div>
+        </div>
+        <SkeletonBox width="70px" height="18px" radius="20px" />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "8px",
+        }}
+      >
+        {Array.from({ length: 4 }).map((_, j) => (
+          <SkeletonBox key={j} height="44px" radius="10px" />
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 const HallAllotments = () => {
   const [allotments, setAllotments] = useState([]);
@@ -114,38 +164,20 @@ const HallAllotments = () => {
         </div>
 
         {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "48px",
-            }}
-          >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                border: "3px solid #e2e8f0",
-                borderTop: "3px solid #f59e0b",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }}
-            />
+          <div>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <AllotmentCardSkeleton key={i} />
+            ))}
           </div>
         ) : allotments.length === 0 ? (
           <div
             style={{
               background: "white",
               borderRadius: "18px",
-              padding: "48px 20px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
-            <div style={{ fontWeight: "600", color: "#64748b" }}>
-              No {filter} requests
-            </div>
+            <EmptyState icon="📋" title={`No ${filter} requests`} />
           </div>
         ) : (
           allotments.map((a, i) => {

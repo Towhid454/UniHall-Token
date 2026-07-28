@@ -47,6 +47,16 @@ const getDiningPlans = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, plans, "Dining plans fetched"));
 });
+// GET /api/dining/hall-plans — hallAdmin sees ALL plans for their hall (any status)
+const getHallDiningPlans = asyncHandler(async (req, res) => {
+  const plans = await DiningPlan.find({ hall: req.user.hall }).sort(
+    "-createdAt",
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, plans, "Hall dining plans fetched"));
+});
 
 // POST /api/dining/purchase — student purchases a dining plan
 const purchaseDiningPlan = asyncHandler(async (req, res) => {
@@ -234,4 +244,5 @@ module.exports = {
   purchaseDiningPlan,
   getMyTokens,
   scanToken,
+  getHallDiningPlans,
 };

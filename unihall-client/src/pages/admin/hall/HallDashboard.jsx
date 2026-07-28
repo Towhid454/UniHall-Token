@@ -34,7 +34,7 @@ const HallDashboard = () => {
           icon: "🚪",
           color: "#6366f1",
           bg: "rgba(99,102,241,0.1)",
-          path: null,
+          path: "/admin/hall/rooms",
         },
         {
           label: "Pending Allotments",
@@ -79,6 +79,13 @@ const HallDashboard = () => {
       gradient: "linear-gradient(135deg, #0d9488, #0f766e)",
     },
     {
+      label: "Manage Rooms",
+      icon: "🛏️",
+      path: "/admin/hall/rooms",
+      color: "#6366f1",
+      gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
+    },
+    {
       label: "Dining Plans",
       icon: "🍽️",
       path: "/admin/hall/dining",
@@ -89,8 +96,8 @@ const HallDashboard = () => {
       label: "Support Tickets",
       icon: "🎧",
       path: "/admin/hall/tickets",
-      color: "#6366f1",
-      gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
+      color: "#ef4444",
+      gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
     },
   ];
 

@@ -4,6 +4,57 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import AppShell from "../../components/layout/AppShell";
 import api from "../../api/axios";
+import { SkeletonBox } from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
+
+const DiningPageSkeleton = () => (
+  <div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "24px",
+      }}
+    >
+      <div>
+        <SkeletonBox
+          height="22px"
+          width="140px"
+          style={{ marginBottom: "8px" }}
+        />
+        <SkeletonBox height="13px" width="180px" />
+      </div>
+      <SkeletonBox width="150px" height="42px" radius="12px" />
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "20px",
+        marginBottom: "28px",
+      }}
+    >
+      <SkeletonBox height="84px" radius="18px" />
+      <SkeletonBox height="84px" radius="18px" />
+    </div>
+
+    <SkeletonBox height="16px" width="140px" style={{ marginBottom: "16px" }} />
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
+        gap: "20px",
+      }}
+    >
+      {Array.from({ length: 2 }).map((_, i) => (
+        <SkeletonBox key={i} height="220px" radius="20px" />
+      ))}
+    </div>
+  </div>
+);
 
 const DiningPage = () => {
   const navigate = useNavigate();
@@ -99,26 +150,7 @@ const DiningPage = () => {
   if (loading)
     return (
       <AppShell>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              border: "3px solid #e2e8f0",
-              borderTop: "3px solid #0d9488",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <DiningPageSkeleton />
       </AppShell>
     );
 
@@ -257,22 +289,14 @@ const DiningPage = () => {
             style={{
               background: "white",
               borderRadius: "18px",
-              padding: "60px 20px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>🍽️</div>
-            <div
-              style={{ color: "#64748b", fontWeight: "600", fontSize: "15px" }}
-            >
-              No plans purchased yet
-            </div>
-            <div
-              style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}
-            >
-              Purchase a plan to start getting tokens
-            </div>
+            <EmptyState
+              icon="🍽️"
+              title="No plans purchased yet"
+              subtitle="Purchase a plan to start getting tokens"
+            />
           </div>
         ) : (
           <div
@@ -429,7 +453,7 @@ const DiningPage = () => {
                   <div style={{ display: "flex", gap: "10px" }}>
                     <button
                       onClick={() =>
-                        navigate("/dining/tokens", {
+                        navigate("/dining/today", {
                           state: {
                             tokens: purchase.tokens,
                             plan: purchase.plan,
@@ -562,15 +586,10 @@ const DiningPage = () => {
               </div>
 
               {plans.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "30px",
-                    color: "#94a3b8",
-                  }}
-                >
-                  No active dining plans available
-                </div>
+                <EmptyState
+                  icon="🍽️"
+                  title="No active dining plans available"
+                />
               ) : (
                 plans.map((plan) => (
                   <div

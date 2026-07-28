@@ -27,6 +27,19 @@ const submitFeedback = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, feedback, "Feedback submitted"));
 });
 
+// GET /api/feedback/my — student sees own feedback
+const getMyFeedback = asyncHandler(async (req, res) => {
+  const { category } = req.query;
+  const filter = { student: req.user._id };
+  if (category) filter.category = category;
+
+  const feedbacks = await Feedback.find(filter).sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, feedbacks, "Your feedback fetched"));
+});
+
 // GET /api/feedback — hallAdmin sees all feedback for their hall
 const getHallFeedback = asyncHandler(async (req, res) => {
   const { category, status } = req.query;
@@ -177,6 +190,7 @@ const updateTicket = asyncHandler(async (req, res) => {
 
 module.exports = {
   submitFeedback,
+  getMyFeedback,
   getHallFeedback,
   getFeedbackStats,
   createTicket,

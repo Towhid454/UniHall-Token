@@ -1,0 +1,695 @@
+{
+  "info": {
+    "name": "UniHall API",
+    "description": "Multi-tenant Smart Hall Management System — full API collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "superAdminToken", "value": "" },
+    { "key": "universityAdminToken", "value": "" },
+    { "key": "hallAdminToken", "value": "" },
+    { "key": "universityId", "value": "" },
+    { "key": "hallId", "value": "" },
+    { "key": "roomId", "value": "" },
+    { "key": "allotmentId", "value": "" },
+    { "key": "diningPlanId", "value": "" },
+    { "key": "tokenCode", "value": "" },
+    { "key": "ticketId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        },
+        {
+          "name": "List Universities",
+          "request": { "method": "GET", "url": "{{baseUrl}}/universities" }
+        },
+        {
+          "name": "List Halls by University",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/universities/:id/halls"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup (Student)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/signup",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Towhid\",\n  \"email\": \"towhid@student.cuet.ac.bd\",\n  \"password\": \"Test1234\",\n  \"university\": \"{{universityId}}\",\n  \"hall\": \"{{hallId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?.accessToken) pm.collectionVariables.set('accessToken', data.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"towhid@student.cuet.ac.bd\",\n  \"password\": \"Test1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/refresh-token"
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/students/me",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/students/me",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"department\": \"CSE\",\n  \"batch\": \"19\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Room",
+      "item": [
+        {
+          "name": "List Rooms in My Hall",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/rooms",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Request Room Allotment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?._id) pm.collectionVariables.set('allotmentId', data.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/rooms/allotments",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hall\": \"{{hallId}}\",\n  \"room\": \"{{roomId}}\",\n  \"requestType\": \"new\",\n  \"reason\": \"First allotment\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Allotment History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/rooms/allotments/my",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] Create Room",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/rooms",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomNumber\": \"101\",\n  \"capacity\": 2,\n  \"floor\": \"1st\",\n  \"type\": \"double\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[HallAdmin] List All Allotment Requests",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/rooms/allotments",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] Approve/Reject Allotment",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/rooms/allotments/{{allotmentId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dining",
+      "item": [
+        {
+          "name": "List My Dining Plans",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/dining/plans",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Purchase Dining Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/dining/purchase",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{diningPlanId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Today's Tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?.[0]?.code) pm.collectionVariables.set('tokenCode', data.data[0].code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/dining/tokens",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Token QR",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/dining/tokens/:id/qr",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] Create Dining Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/dining/plans",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"June-July (First 15 days)\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-15\",\n  \"totalTokens\": 30,\n  \"totalAmount\": 1300,\n  \"lunchTime\": \"12:30-2:50\",\n  \"dinnerTime\": \"8:30-11:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[HallAdmin] Scan Token",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/dining/scan",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{tokenCode}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get My Wallet",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/wallet/me",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Deposit",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/wallet/deposit",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 500\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback & Support",
+      "item": [
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/feedback",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"dining\",\n  \"rating\": 4,\n  \"message\": \"Good food today\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Support Ticket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?._id) pm.collectionVariables.set('ticketId', data.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/support/tickets",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Room fan not working\",\n  \"message\": \"Please fix\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Support Tickets",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/support/tickets/my",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] List Feedback",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/feedback",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] Feedback Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/feedback/stats",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] List Support Tickets",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/support/tickets",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "[HallAdmin] Update Ticket",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"resolved\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hall Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/hall-admin/dashboard",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/hall-admin/students",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update Student Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/hall-admin/students/:id/status",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"suspended\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Rooms with Occupancy",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/hall-admin/rooms",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Token Usage Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/hall-admin/tokens/usage",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update Dining Plan",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/hall-admin/dining/plans/{{diningPlanId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hallAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"closed\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "University Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/university-admin/dashboard",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{universityAdminToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "List Halls",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/university-admin/halls",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{universityAdminToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Create Hall",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?._id) pm.collectionVariables.set('hallId', data.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/university-admin/halls",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{universityAdminToken}}"
+              },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shaheed Tarek Huda Hall\",\n  \"code\": \"SAR\",\n  \"totalRooms\": 50\n}"
+            }
+          }
+        },
+        {
+          "name": "Assign Hall Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/university-admin/halls/{{hallId}}/assign-admin",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{universityAdminToken}}"
+              },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"halladmin@student.cuet.ac.bd\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cross-Hall Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/university-admin/cross-hall-report",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{universityAdminToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Super Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/super-admin/dashboard",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "List Universities",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/super-admin/universities",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Onboard University",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data?.data?._id) pm.collectionVariables.set('universityId', data.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/super-admin/universities",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chittagong University of Engineering & Technology\",\n  \"shortName\": \"CUET\",\n  \"code\": \"CUET\",\n  \"emailDomain\": \"student.cuet.ac.bd\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle University Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/super-admin/universities/{{universityId}}/status",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"inactive\"\n}" }
+          }
+        },
+        {
+          "name": "Assign University Admin",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/super-admin/assign-university-admin",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"uniadmin@student.cuet.ac.bd\",\n  \"university\": \"{{universityId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/super-admin/users",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{superAdminToken}}" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

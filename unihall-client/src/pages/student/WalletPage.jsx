@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import AppShell from "../../components/layout/AppShell";
 import api from "../../api/axios";
+import { SkeletonBox } from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
 
 const TX_ICONS = {
   deposit: {
@@ -18,6 +20,60 @@ const TX_ICONS = {
     label: "Debit",
   },
 };
+
+const WalletPageSkeleton = () => (
+  <div>
+    <SkeletonBox
+      height="180px"
+      radius="24px"
+      style={{ marginBottom: "16px" }}
+    />
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "12px",
+        marginBottom: "20px",
+      }}
+    >
+      <SkeletonBox height="100px" radius="16px" />
+      <SkeletonBox height="100px" radius="16px" />
+    </div>
+    <SkeletonBox height="15px" width="150px" style={{ marginBottom: "12px" }} />
+    <div
+      style={{
+        background: "white",
+        borderRadius: "20px",
+        overflow: "hidden",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+      }}
+    >
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "14px 16px",
+            borderBottom: i < 3 ? "1px solid #f1f5f9" : "none",
+          }}
+        >
+          <SkeletonBox width="40px" height="40px" radius="12px" />
+          <div style={{ flex: 1 }}>
+            <SkeletonBox
+              height="13px"
+              width="60%"
+              style={{ marginBottom: "6px" }}
+            />
+            <SkeletonBox height="11px" width="40%" />
+          </div>
+          <SkeletonBox width="60px" height="14px" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const WalletPage = () => {
   const [wallet, setWallet] = useState(null);
@@ -67,26 +123,7 @@ const WalletPage = () => {
   if (loading)
     return (
       <AppShell>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              border: "3px solid #e2e8f0",
-              borderTop: "3px solid #0d9488",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <WalletPageSkeleton />
       </AppShell>
     );
 
@@ -292,20 +329,14 @@ const WalletPage = () => {
             style={{
               background: "white",
               borderRadius: "18px",
-              padding: "48px 20px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>💳</div>
-            <div style={{ fontWeight: "600", color: "#64748b" }}>
-              No transactions yet
-            </div>
-            <div
-              style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}
-            >
-              Your transaction history will appear here
-            </div>
+            <EmptyState
+              icon="💳"
+              title="No transactions yet"
+              subtitle="Your transaction history will appear here"
+            />
           </div>
         ) : (
           <div

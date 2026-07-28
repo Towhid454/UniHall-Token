@@ -23,12 +23,16 @@ const MEAL_TIMES = {
     end: "2:50 PM",
     icon: "🌞",
     gradient: "linear-gradient(135deg, #0d9488, #0f766e)",
+    startMins: 12 * 60 + 30,
+    endMins: 14 * 60 + 50,
   },
   dinner: {
     start: "8:30 PM",
     end: "11:00 PM",
     icon: "🌙",
     gradient: "linear-gradient(135deg, #1e293b, #334155)",
+    startMins: 20 * 60 + 30,
+    endMins: 23 * 60,
   },
 };
 
@@ -46,7 +50,13 @@ const TodayTokensPage = () => {
   const fetchTokens = async () => {
     try {
       const res = await api.get("/dining/tokens");
-      setTokens(res.data.data || []);
+      const data = res.data.data || [];
+      const MEAL_ORDER = { lunch: 0, dinner: 1 };
+      const sorted = [...data].sort(
+        (a, b) =>
+          (MEAL_ORDER[a.mealType] ?? 99) - (MEAL_ORDER[b.mealType] ?? 99),
+      );
+      setTokens(sorted);
     } catch {
       toast.error("Failed to load tokens");
     } finally {
@@ -58,15 +68,22 @@ const TodayTokensPage = () => {
     fetchTokens();
   }, []);
 
-  const isLive = (mealType) => {
+  const nowMins = () => {
     const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const mins = h * 60 + m;
-    if (mealType === "lunch")
-      return mins >= 12 * 60 + 30 && mins <= 14 * 60 + 50;
-    if (mealType === "dinner") return mins >= 20 * 60 + 30 && mins <= 23 * 60;
-    return false;
+    return now.getHours() * 60 + now.getMinutes();
+  };
+
+  const isLive = (mealType) => {
+    const meal = MEAL_TIMES[mealType];
+    if (!meal) return false;
+    const mins = nowMins();
+    return mins >= meal.startMins && mins <= meal.endMins;
+  };
+
+  const isExpired = (mealType) => {
+    const meal = MEAL_TIMES[mealType];
+    if (!meal) return false;
+    return nowMins() > meal.endMins;
   };
 
   if (loading)
@@ -155,8 +172,10 @@ const TodayTokensPage = () => {
         ) : (
           tokens.map((token, i) => {
             const meal = MEAL_TIMES[token.mealType] || {};
-            const live = isLive(token.mealType) && token.status === "active";
             const used = token.status === "used";
+            const live =
+              !used && isLive(token.mealType) && token.status === "active";
+            const expired = !used && !live && isExpired(token.mealType);
 
             return (
               <motion.div
@@ -171,8 +190,8 @@ const TodayTokensPage = () => {
                     background: meal.gradient,
                     borderRadius: "20px",
                     padding: "20px",
-                    boxShadow: `0 8px 24px ${used ? "rgba(0,0,0,0.1)" : "rgba(13,148,136,0.25)"}`,
-                    opacity: used ? 0.75 : 1,
+                    boxShadow: `0 8px 24px ${used || expired ? "rgba(0,0,0,0.1)" : "rgba(13,148,136,0.25)"}`,
+                    opacity: used || expired ? 0.75 : 1,
                     position: "relative",
                     overflow: "hidden",
                   }}
@@ -249,15 +268,27 @@ const TodayTokensPage = () => {
                           ? "rgba(255,255,255,0.15)"
                           : live
                             ? "rgba(16,185,129,0.25)"
-                            : "rgba(255,255,255,0.15)",
-                        border: `1px solid ${used ? "rgba(255,255,255,0.2)" : live ? "rgba(16,185,129,0.5)" : "rgba(255,255,255,0.2)"}`,
+                            : expired
+                              ? "rgba(239,68,68,0.2)"
+                              : "rgba(255,255,255,0.15)",
+                        border: `1px solid ${
+                          used
+                            ? "rgba(255,255,255,0.2)"
+                            : live
+                              ? "rgba(16,185,129,0.5)"
+                              : expired
+                                ? "rgba(239,68,68,0.5)"
+                                : "rgba(255,255,255,0.2)"
+                        }`,
                         borderRadius: "20px",
                         padding: "5px 12px",
                         color: used
                           ? "rgba(255,255,255,0.6)"
                           : live
                             ? "#6ee7b7"
-                            : "white",
+                            : expired
+                              ? "#fca5a5"
+                              : "white",
                         fontSize: "11px",
                         fontWeight: "700",
                         display: "flex",
@@ -265,7 +296,13 @@ const TodayTokensPage = () => {
                         gap: "5px",
                       }}
                     >
-                      {used ? "✅ USED" : live ? "● LIVE" : "⏳ UPCOMING"}
+                      {used
+                        ? "✅ USED"
+                        : live
+                          ? "● LIVE"
+                          : expired
+                            ? "✕ EXPIRED"
+                            : "⏳ UPCOMING"}
                     </div>
                   </div>
 
@@ -288,6 +325,27 @@ const TodayTokensPage = () => {
                         }}
                       >
                         Token has been used
+                      </span>
+                    </div>
+                  ) : expired ? (
+                    <div
+                      style={{
+                        background: "rgba(255,255,255,0.1)",
+                        borderRadius: "12px",
+                        padding: "12px 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>✕</span>
+                      <span
+                        style={{
+                          color: "rgba(255,255,255,0.8)",
+                          fontSize: "13px",
+                        }}
+                      >
+                        Meal window closed — token missed
                       </span>
                     </div>
                   ) : (

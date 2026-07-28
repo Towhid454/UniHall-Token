@@ -73,101 +73,143 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const stats = [
+    { label: "Student ID", value: user?.studentId || "—" },
+    { label: "Department", value: user?.department || "—" },
+    { label: "Session", value: user?.session || "—" },
+    { label: "Status", value: (user?.status || "active").toUpperCase() },
+  ];
+
   return (
     <AppShell>
-      {/* Welcome Banner */}
+      {/* Institutional Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
           background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
           borderRadius: "20px",
-          padding: "28px 32px",
-          marginBottom: "24px",
+          padding: "32px 36px",
+          marginBottom: "28px",
           position: "relative",
           overflow: "hidden",
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
         }}
       >
+        {/* Architectural watermark motif */}
         <div
           style={{
             position: "absolute",
-            right: "-40px",
-            top: "-40px",
-            width: "200px",
-            height: "200px",
+            right: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            fontSize: "150px",
+            lineHeight: 1,
+            opacity: 0.045,
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        >
+          🏛️
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: "-40px",
+            bottom: "-60px",
+            width: "180px",
+            height: "180px",
             background:
-              "radial-gradient(circle, rgba(13,148,136,0.3) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(13,148,136,0.22) 0%, transparent 70%)",
             borderRadius: "50%",
             pointerEvents: "none",
           }}
         />
+
         <div style={{ position: "relative", zIndex: 1 }}>
           <div
-            style={{ color: "#94a3b8", fontSize: "13px", marginBottom: "4px" }}
+            style={{
+              color: "#94a3b8",
+              fontSize: "13.5px",
+              fontWeight: 500,
+              marginBottom: "6px",
+            }}
           >
-            Welcome back 👋
+            Welcome back, {user?.name?.split(" ")[0]} 👋
           </div>
-          <div style={{ color: "white", fontSize: "24px", fontWeight: "800" }}>
-            {user?.name}
+          <div
+            style={{
+              color: "white",
+              fontSize: "26px",
+              fontWeight: "700",
+              letterSpacing: "-0.3px",
+              lineHeight: 1.25,
+              maxWidth: "600px",
+            }}
+          >
+            {user?.hall?.name || "Your Hall"}
           </div>
-          <div style={{ color: "#14b8a6", fontSize: "13px", marginTop: "4px" }}>
-            {user?.hall?.name} • {user?.university?.shortName}
-          </div>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          {[
-            { label: "Student ID", value: user?.studentId || "—", icon: "🪪" },
-            { label: "Department", value: user?.department || "—", icon: "🏛️" },
-            { label: "Session", value: user?.session || "—", icon: "📅" },
-            { label: "Status", value: user?.status || "active", icon: "✅" },
-          ].map((s, i) => (
-            <div
-              key={i}
-              style={{
-                background: "rgba(255,255,255,0.07)",
-                borderRadius: "14px",
-                padding: "14px 18px",
-                textAlign: "center",
-                minWidth: "90px",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <div style={{ fontSize: "20px", marginBottom: "6px" }}>
-                {s.icon}
-              </div>
+
+          {/* Stat row with dividers */}
+          <div
+            style={{
+              display: "flex",
+              gap: "0",
+              marginTop: "26px",
+              background: "rgba(255,255,255,0.045)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: "16px",
+              overflow: "hidden",
+              maxWidth: "640px",
+            }}
+          >
+            {stats.map((s, i) => (
               <div
-                style={{ color: "white", fontWeight: "700", fontSize: "13px" }}
+                key={i}
+                style={{
+                  flex: 1,
+                  padding: "18px 20px",
+                  borderRight:
+                    i < stats.length - 1
+                      ? "1px solid rgba(255,255,255,0.09)"
+                      : "none",
+                }}
               >
-                {s.value}
+                <div
+                  style={{
+                    color: "#8b95a8",
+                    fontSize: "10.5px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.6px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {s.label}
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: "17px",
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {s.value}
+                </div>
               </div>
-              <div
-                style={{ color: "#64748b", fontSize: "10px", marginTop: "2px" }}
-              >
-                {s.label}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </motion.div>
 
       {/* Quick Access */}
       <div
         style={{
-          fontSize: "16px",
+          fontSize: "17px",
           fontWeight: "700",
           color: "#0f172a",
-          marginBottom: "16px",
+          marginBottom: "18px",
         }}
       >
         Quick Access
@@ -175,8 +217,8 @@ const DashboardPage = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-          gap: "16px",
+          gridTemplateColumns: "repeat(auto-fill, minmax(195px, 1fr))",
+          gap: "18px",
         }}
       >
         {modules.map((mod, i) => (
@@ -185,23 +227,23 @@ const DashboardPage = () => {
             initial={{ opacity: 0, scale: 0.93 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.04 }}
-            whileHover={{ scale: 1.04, y: -3 }}
+            whileHover={{ scale: 1.03, y: -4 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate(mod.path)}
             style={{
               background: "white",
               border: "none",
               borderRadius: "20px",
-              padding: "24px 12px",
+              padding: "30px 16px",
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "12px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              gap: "16px",
+              boxShadow: "0 2px 14px rgba(0,0,0,0.07)",
               position: "relative",
               overflow: "hidden",
-              transition: "all 0.2s",
+              transition: "box-shadow 0.2s",
             }}
           >
             <div
@@ -210,32 +252,33 @@ const DashboardPage = () => {
                 top: 0,
                 left: 0,
                 right: 0,
-                height: "3px",
+                height: "4px",
                 background: mod.gradient,
                 borderRadius: "20px 20px 0 0",
               }}
             />
             <div
               style={{
-                width: "56px",
-                height: "56px",
+                width: "64px",
+                height: "64px",
                 background: mod.gradient,
-                borderRadius: "16px",
+                borderRadius: "18px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
-                boxShadow: `0 6px 16px ${mod.shadow}`,
+                fontSize: "28px",
+                boxShadow: `0 8px 20px ${mod.shadow}`,
               }}
             >
               {mod.icon}
             </div>
             <span
               style={{
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "#334155",
+                fontSize: "14.5px",
+                fontWeight: "700",
+                color: "#1e293b",
                 textAlign: "center",
+                letterSpacing: "-0.1px",
               }}
             >
               {mod.label}

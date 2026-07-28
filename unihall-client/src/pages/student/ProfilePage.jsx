@@ -13,37 +13,39 @@ const Section = ({ icon, title, gradient, children, onUpdate }) => (
       background: "white",
       borderRadius: "20px",
       overflow: "hidden",
-      marginBottom: "14px",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-      border: "1px solid rgba(0,0,0,0.05)",
+      marginBottom: "16px",
+      boxShadow: "0 2px 16px rgba(15,23,42,0.06)",
+      border: "1px solid rgba(15,23,42,0.05)",
     }}
   >
+    <div style={{ height: "4px", background: gradient }} />
     {/* Section Header */}
     <div
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "16px 18px",
+        padding: "18px 20px",
         borderBottom: "1px solid #f1f5f9",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <div
           style={{
-            width: "36px",
-            height: "36px",
-            borderRadius: "10px",
+            width: "38px",
+            height: "38px",
+            borderRadius: "11px",
             background: gradient,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "16px",
+            fontSize: "17px",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
           }}
         >
           {icon}
         </div>
-        <span style={{ fontWeight: "700", fontSize: "15px", color: "#0f172a" }}>
+        <span style={{ fontWeight: "800", fontSize: "15px", color: "#0f172a" }}>
           {title}
         </span>
       </div>
@@ -52,12 +54,12 @@ const Section = ({ icon, title, gradient, children, onUpdate }) => (
           onClick={onUpdate}
           style={{
             background: "rgba(13,148,136,0.1)",
-            border: "none",
-            borderRadius: "8px",
-            padding: "6px 12px",
+            border: "1px solid rgba(13,148,136,0.25)",
+            borderRadius: "9px",
+            padding: "7px 14px",
             color: "#0d9488",
             fontSize: "12px",
-            fontWeight: "600",
+            fontWeight: "700",
             cursor: "pointer",
           }}
         >
@@ -65,39 +67,149 @@ const Section = ({ icon, title, gradient, children, onUpdate }) => (
         </button>
       )}
     </div>
-    <div style={{ padding: "16px 18px" }}>{children}</div>
+    <div style={{ padding: "18px 20px" }}>{children}</div>
   </motion.div>
 );
 
-const InfoRow = ({ icon, label, value }) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      padding: "9px 0",
-      borderBottom: "1px solid #f8fafc",
-    }}
-  >
-    <span style={{ fontSize: "16px", marginRight: "10px", width: "24px" }}>
-      {icon}
-    </span>
-    <span style={{ color: "#64748b", fontSize: "13px", flex: 1 }}>{label}</span>
-    <span
+const InfoRow = ({ icon, label, value }) => {
+  const hasValue = value && value !== "Not provided";
+  return (
+    <div
       style={{
-        color: value && value !== "Not provided" ? "#0f172a" : "#cbd5e1",
-        fontSize: "13px",
-        fontWeight: value && value !== "Not provided" ? "600" : "400",
-        textAlign: "right",
-        maxWidth: "55%",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "12px 0",
+        borderBottom: "1px solid #f8fafc",
       }}
     >
-      {value || "Not provided"}
-    </span>
-  </div>
-);
+      <div
+        style={{
+          width: "30px",
+          height: "30px",
+          flexShrink: 0,
+          borderRadius: "9px",
+          background: "#f1f5f9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "14px",
+          marginTop: "1px",
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            color: "#94a3b8",
+            fontSize: "11px",
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.3px",
+            marginBottom: "3px",
+          }}
+        >
+          {label}
+        </div>
+        <div
+          style={{
+            color: hasValue ? "#0f172a" : "#cbd5e1",
+            fontSize: "13.5px",
+            fontWeight: hasValue ? "700" : "400",
+            wordBreak: "break-word",
+            lineHeight: 1.4,
+          }}
+        >
+          {value || "Not provided"}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const GENDERS = ["male", "female", "other"];
+
+const fieldStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: "#f8fafc",
+  border: "1px solid #e2e8f0",
+  borderRadius: "10px",
+  padding: "10px 14px",
+  fontSize: "13px",
+  color: "#0f172a",
+  outline: "none",
+};
+
+const Field = ({ label, name, type = "text", options, form, setForm }) => (
+  <div style={{ marginBottom: "12px" }}>
+    <label
+      style={{
+        fontSize: "12px",
+        color: "#64748b",
+        fontWeight: "600",
+        display: "block",
+        marginBottom: "6px",
+      }}
+    >
+      {label}
+    </label>
+    {options ? (
+      <select
+        value={form[name] || ""}
+        onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+        style={fieldStyle}
+      >
+        <option value="">Select {label}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <input
+        type={type}
+        value={form[name] || ""}
+        onChange={(e) => setForm({ ...form, [name]: e.target.value })}
+        placeholder={`Enter ${label}`}
+        style={fieldStyle}
+      />
+    )}
+  </div>
+);
+
+const AddressField = ({ prefix, label, form, setForm }) => (
+  <div style={{ marginBottom: "12px" }}>
+    <label
+      style={{
+        fontSize: "12px",
+        color: "#64748b",
+        fontWeight: "600",
+        display: "block",
+        marginBottom: "6px",
+      }}
+    >
+      {label}
+    </label>
+    {["division", "district", "upazila", "postcode", "details"].map((k) => (
+      <input
+        key={k}
+        placeholder={k.charAt(0).toUpperCase() + k.slice(1)}
+        value={form[prefix]?.[k] || ""}
+        onChange={(e) =>
+          setForm({
+            ...form,
+            [prefix]: { ...form[prefix], [k]: e.target.value },
+          })
+        }
+        style={{ ...fieldStyle, marginBottom: "6px" }}
+      />
+    ))}
+  </div>
+);
 
 const ProfilePage = () => {
   const { user, login } = useAuth();
@@ -141,74 +253,6 @@ const ProfilePage = () => {
     }
   };
 
-  const Field = ({ label, name, type = "text", options }) => (
-    <div style={{ marginBottom: "12px" }}>
-      <label
-        style={{
-          fontSize: "12px",
-          color: "#64748b",
-          fontWeight: "600",
-          display: "block",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </label>
-      {options ? (
-        <select
-          value={form[name] || ""}
-          onChange={(e) => setForm({ ...form, [name]: e.target.value })}
-          style={fieldStyle}
-        >
-          <option value="">Select {label}</option>
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          value={form[name] || ""}
-          onChange={(e) => setForm({ ...form, [name]: e.target.value })}
-          placeholder={`Enter ${label}`}
-          style={fieldStyle}
-        />
-      )}
-    </div>
-  );
-
-  const AddressField = ({ prefix, label }) => (
-    <div style={{ marginBottom: "12px" }}>
-      <label
-        style={{
-          fontSize: "12px",
-          color: "#64748b",
-          fontWeight: "600",
-          display: "block",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </label>
-      {["division", "district", "upazila", "postcode", "details"].map((k) => (
-        <input
-          key={k}
-          placeholder={k.charAt(0).toUpperCase() + k.slice(1)}
-          value={form[prefix]?.[k] || ""}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              [prefix]: { ...form[prefix], [k]: e.target.value },
-            })
-          }
-          style={{ ...fieldStyle, marginBottom: "6px" }}
-        />
-      ))}
-    </div>
-  );
-
   if (loading)
     return (
       <AppShell>
@@ -245,7 +289,7 @@ const ProfilePage = () => {
         style={{
           display: "grid",
           gridTemplateColumns: "300px 1fr",
-          gap: "24px",
+          gap: "20px",
           alignItems: "start",
         }}
       >
@@ -256,42 +300,68 @@ const ProfilePage = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-              background: "linear-gradient(135deg, #0f766e, #0d9488)",
-              borderRadius: "24px",
-              padding: "28px 20px",
+              background:
+                "linear-gradient(160deg, #0f766e 0%, #0d9488 55%, #0e7c8f 100%)",
+              borderRadius: "22px",
+              padding: "30px 20px",
               textAlign: "center",
               marginBottom: "16px",
-              boxShadow: "0 8px 24px rgba(13,148,136,0.3)",
+              boxShadow: "0 10px 28px rgba(13,148,136,0.32)",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
             <div
               style={{
-                width: "80px",
-                height: "80px",
-                background: "rgba(255,255,255,0.2)",
+                position: "absolute",
+                right: "-30px",
+                top: "-30px",
+                width: "120px",
+                height: "120px",
+                background:
+                  "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)",
                 borderRadius: "50%",
-                margin: "0 auto 12px",
+              }}
+            />
+            <div
+              style={{
+                width: "82px",
+                height: "82px",
+                background: "rgba(255,255,255,0.16)",
+                borderRadius: "50%",
+                margin: "0 auto 14px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "32px",
                 fontWeight: "900",
                 color: "white",
-                border: "3px solid rgba(255,255,255,0.4)",
+                border: "3px solid rgba(255,255,255,0.35)",
+                position: "relative",
+                zIndex: 1,
               }}
             >
               {p.name?.charAt(0).toUpperCase()}
             </div>
             <div
-              style={{ color: "white", fontSize: "20px", fontWeight: "700" }}
+              style={{
+                color: "white",
+                fontSize: "19px",
+                fontWeight: "800",
+                position: "relative",
+                zIndex: 1,
+                letterSpacing: "-0.2px",
+              }}
             >
               {p.name?.toUpperCase()}
             </div>
             <div
               style={{
-                color: "rgba(255,255,255,0.8)",
+                color: "rgba(255,255,255,0.75)",
                 fontSize: "13px",
                 marginTop: "4px",
+                position: "relative",
+                zIndex: 1,
               }}
             >
               {p.studentId ? `🪪 ${p.studentId}` : "ID not set"}
@@ -301,8 +371,10 @@ const ProfilePage = () => {
                 display: "flex",
                 justifyContent: "center",
                 gap: "6px",
-                marginTop: "10px",
+                marginTop: "14px",
                 flexWrap: "wrap",
+                position: "relative",
+                zIndex: 1,
               }}
             >
               {[p.department, `Batch ${p.batch}`, "Hall Resident"]
@@ -311,13 +383,13 @@ const ProfilePage = () => {
                   <span
                     key={i}
                     style={{
-                      background: "rgba(255,255,255,0.15)",
+                      background: "rgba(255,255,255,0.16)",
                       border: "1px solid rgba(255,255,255,0.3)",
                       borderRadius: "20px",
                       padding: "4px 10px",
                       color: "white",
                       fontSize: "11px",
-                      fontWeight: "600",
+                      fontWeight: "700",
                     }}
                   >
                     {tag}
@@ -335,7 +407,7 @@ const ProfilePage = () => {
             <InfoRow icon="🏛️" label="University" value={p.university?.name} />
             <InfoRow icon="🏠" label="Hall Name" value={p.hall?.name} />
             <InfoRow icon="📧" label="Email" value={p.email} />
-            <div style={{ marginTop: "10px" }}>
+            <div style={{ marginTop: "14px" }}>
               <span
                 style={{
                   background:
@@ -345,7 +417,7 @@ const ProfilePage = () => {
                   color: p.status === "active" ? "#10b981" : "#ef4444",
                   border: `1px solid ${p.status === "active" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
                   borderRadius: "20px",
-                  padding: "4px 12px",
+                  padding: "5px 13px",
                   fontSize: "12px",
                   fontWeight: "700",
                 }}
@@ -376,7 +448,7 @@ const ProfilePage = () => {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "0",
+                gap: "0 20px",
               }}
             >
               <InfoRow icon="#️⃣" label="Roll Number" value={p.studentId} />
@@ -407,7 +479,7 @@ const ProfilePage = () => {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "0",
+                gap: "0 20px",
               }}
             >
               <InfoRow
@@ -439,16 +511,18 @@ const ProfilePage = () => {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "16px",
+                gap: "0 20px",
               }}
             >
               <div>
                 <div
                   style={{
-                    fontSize: "12px",
-                    fontWeight: "700",
+                    fontSize: "11.5px",
+                    fontWeight: "800",
                     color: "#0d9488",
-                    marginBottom: "8px",
+                    marginBottom: "6px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.3px",
                   }}
                 >
                   🏠 Present Address
@@ -465,10 +539,12 @@ const ProfilePage = () => {
               <div>
                 <div
                   style={{
-                    fontSize: "12px",
-                    fontWeight: "700",
+                    fontSize: "11.5px",
+                    fontWeight: "800",
                     color: "#6366f1",
-                    marginBottom: "8px",
+                    marginBottom: "6px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.3px",
                   }}
                 >
                   🏡 Permanent Address
@@ -553,36 +629,103 @@ const ProfilePage = () => {
 
             {editModal === "academic" && (
               <>
-                <Field label="Student ID / Roll" name="studentId" />
-                <Field label="Department" name="department" />
-                <Field label="Batch" name="batch" />
-                <Field label="Session" name="session" />
-                <Field label="Program" name="program" />
+                <Field
+                  label="Student ID / Roll"
+                  name="studentId"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Department"
+                  name="department"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Batch"
+                  name="batch"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Session"
+                  name="session"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Program"
+                  name="program"
+                  form={form}
+                  setForm={setForm}
+                />
               </>
             )}
 
             {editModal === "personal" && (
               <>
-                <Field label="Date of Birth" name="dob" type="date" />
-                <Field label="Gender" name="gender" options={GENDERS} />
+                <Field
+                  label="Date of Birth"
+                  name="dob"
+                  type="date"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Gender"
+                  name="gender"
+                  options={GENDERS}
+                  form={form}
+                  setForm={setForm}
+                />
                 <Field
                   label="Blood Group"
                   name="bloodGroup"
                   options={BLOOD_GROUPS}
+                  form={form}
+                  setForm={setForm}
                 />
-                <Field label="Religion" name="religion" />
-                <Field label="Nationality" name="nationality" />
-                <Field label="National ID" name="nationalId" />
-                <Field label="Phone" name="phone" type="tel" />
+                <Field
+                  label="Religion"
+                  name="religion"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Nationality"
+                  name="nationality"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="National ID"
+                  name="nationalId"
+                  form={form}
+                  setForm={setForm}
+                />
+                <Field
+                  label="Phone"
+                  name="phone"
+                  type="tel"
+                  form={form}
+                  setForm={setForm}
+                />
               </>
             )}
 
             {editModal === "address" && (
               <>
-                <AddressField prefix="presentAddress" label="Present Address" />
+                <AddressField
+                  prefix="presentAddress"
+                  label="Present Address"
+                  form={form}
+                  setForm={setForm}
+                />
                 <AddressField
                   prefix="permanentAddress"
                   label="Permanent Address"
+                  form={form}
+                  setForm={setForm}
                 />
               </>
             )}
@@ -616,18 +759,6 @@ const ProfilePage = () => {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </AppShell>
   );
-};
-
-const fieldStyle = {
-  width: "100%",
-  boxSizing: "border-box",
-  background: "#f8fafc",
-  border: "1px solid #e2e8f0",
-  borderRadius: "10px",
-  padding: "10px 14px",
-  fontSize: "13px",
-  color: "#0f172a",
-  outline: "none",
 };
 
 export default ProfilePage;

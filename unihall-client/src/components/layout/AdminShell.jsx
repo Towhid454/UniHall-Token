@@ -6,8 +6,16 @@ const HALL_ADMIN_TABS = [
   { path: "/admin/hall/allotments", icon: "🚪", label: "Allotments" },
   { path: "/admin/hall/students", icon: "👥", label: "Students" },
   { path: "/admin/hall/dining", icon: "🍽️", label: "Dining" },
+  { path: "/admin/hall/fees", icon: "💳", label: "Fees" },
+  { path: "/admin/hall/rooms", icon: "🛏️", label: "Rooms" },
   { path: "/admin/hall/tickets", icon: "🎧", label: "Tickets" },
 ];
+
+const ROLE_LABELS = {
+  hallAdmin: "Hall Admin",
+  universityAdmin: "University Admin",
+  superAdmin: "Super Admin",
+};
 
 const AdminShell = ({
   children,
@@ -17,6 +25,25 @@ const AdminShell = ({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isHallAdmin = user?.role === "hallAdmin";
+  const isUniversityAdmin = user?.role === "universityAdmin";
+
+  const identityName = isHallAdmin
+    ? user?.hall?.name
+    : isUniversityAdmin
+      ? user?.university?.name
+      : "UniHall";
+
+  const identitySubtitle = isHallAdmin
+    ? user?.university?.shortName
+      ? `${user.university.shortName} · Hall Admin Portal`
+      : "Hall Admin Portal"
+    : isUniversityAdmin
+      ? "University Admin Portal"
+      : "Platform Administration";
+
+  const badgeLetter = (identityName || "U").charAt(0).toUpperCase();
 
   return (
     <div
@@ -42,23 +69,28 @@ const AdminShell = ({
           height: "64px",
         }}
       >
-        {/* Logo + Role */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* Identity */}
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "12px" }}
+          onClick={() => navigate(tabs[0]?.path || "/")}
+          onKeyDown={() => {}}
+        >
           <div
             style={{
-              width: "36px",
-              height: "36px",
+              width: "38px",
+              height: "38px",
               background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-              borderRadius: "10px",
+              borderRadius: "11px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "16px",
               fontWeight: "900",
               color: "white",
+              flexShrink: 0,
             }}
           >
-            A
+            {badgeLetter}
           </div>
           <div>
             <div
@@ -66,25 +98,45 @@ const AdminShell = ({
                 color: "white",
                 fontWeight: "800",
                 fontSize: "15px",
-                lineHeight: 1,
+                lineHeight: 1.15,
+                maxWidth: "260px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
-              UniHall
+              {identityName}
             </div>
             <div
               style={{
-                background: "rgba(99,102,241,0.25)",
-                border: "1px solid rgba(99,102,241,0.4)",
-                borderRadius: "20px",
-                padding: "1px 8px",
-                color: "#a5b4fc",
-                fontSize: "10px",
-                fontWeight: "700",
-                display: "inline-block",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
                 marginTop: "2px",
               }}
             >
-              {title.toUpperCase()}
+              <span
+                style={{
+                  background: "rgba(99,102,241,0.25)",
+                  border: "1px solid rgba(99,102,241,0.4)",
+                  borderRadius: "20px",
+                  padding: "1px 8px",
+                  color: "#a5b4fc",
+                  fontSize: "9.5px",
+                  fontWeight: "700",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                {(ROLE_LABELS[user?.role] || title).toUpperCase()}
+              </span>
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: "10px",
+                }}
+              >
+                {identitySubtitle}
+              </span>
             </div>
           </div>
         </div>
@@ -129,7 +181,7 @@ const AdminShell = ({
               {user?.name}
             </div>
             <div style={{ color: "#64748b", fontSize: "11px" }}>
-              {user?.hall?.name}
+              {user?.email}
             </div>
           </div>
           <button
@@ -175,9 +227,13 @@ const AdminShell = ({
         }}
       >
         <div style={{ fontSize: "12px", color: "#94a3b8" }}>
-          © 2026 UniHall — Admin Panel
+          {isHallAdmin || isUniversityAdmin
+            ? `© 2026 ${identityName}`
+            : "© 2026 UniHall — Admin Panel"}
         </div>
-        <div style={{ fontSize: "12px", color: "#cbd5e1" }}>Version 1.0.0</div>
+        <div style={{ fontSize: "11px", color: "#cbd5e1" }}>
+          Powered by UniHall · v1.0.0
+        </div>
       </div>
     </div>
   );

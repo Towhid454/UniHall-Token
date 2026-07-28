@@ -167,7 +167,13 @@ const universityAdminDashboard = asyncHandler(async (req, res) => {
   const halls = await Hall.find({ university: universityId });
   const hallIds = halls.map((h) => h._id);
 
-  const [totalHalls, totalStudents, totalHallAdmins] = await Promise.all([
+  const [
+    totalHalls,
+    totalStudents,
+    totalHallAdmins,
+    pendingAllotments,
+    pendingTickets,
+  ] = await Promise.all([
     Hall.countDocuments({ university: universityId }),
     User.countDocuments({
       university: universityId,
@@ -175,6 +181,14 @@ const universityAdminDashboard = asyncHandler(async (req, res) => {
       status: "active",
     }),
     User.countDocuments({ university: universityId, role: "hallAdmin" }),
+    RoomAllotment.countDocuments({
+      hall: { $in: hallIds },
+      status: "pending",
+    }),
+    SupportTicket.countDocuments({
+      hall: { $in: hallIds },
+      status: "pending",
+    }),
   ]);
 
   return res.status(200).json(
@@ -184,6 +198,8 @@ const universityAdminDashboard = asyncHandler(async (req, res) => {
         totalHalls,
         totalStudents,
         totalHallAdmins,
+        pendingAllotments,
+        pendingTickets,
         halls: halls.map((h) => ({
           _id: h._id,
           name: h.name,
@@ -196,10 +212,35 @@ const universityAdminDashboard = asyncHandler(async (req, res) => {
   );
 });
 
-// GET /api/university-admin/halls — all halls under this university
+// GET /api/university-admin/halls — all halls under this university, with assigned admin info
 const getUniversityHalls = asyncHandler(async (req, res) => {
-  const halls = await Hall.find({ university: req.user.university });
-  return res.status(200).json(new ApiResponse(200, halls, "Halls fetched"));
+  const halls = await Hall.find({ university: req.user.university }).lean();
+  const hallIds = halls.map((h) => h._id);
+
+  // Hall model has no hallAdmin field — admin is tracked on the User side
+  // (user.hall = hallId, user.role = "hallAdmin"). So we look it up separately
+  // and attach it to each hall for the frontend.
+  const hallAdmins = await User.find({
+    hall: { $in: hallIds },
+    role: "hallAdmin",
+  }).select("name email hall");
+
+  const adminByHall = {};
+  hallAdmins.forEach((admin) => {
+    adminByHall[admin.hall.toString()] = {
+      name: admin.name,
+      email: admin.email,
+    };
+  });
+
+  const hallsWithAdmin = halls.map((h) => ({
+    ...h,
+    hallAdmin: adminByHall[h._id.toString()] || null,
+  }));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, hallsWithAdmin, "Halls fetched"));
 });
 
 // POST /api/university-admin/halls — create a new hall
@@ -229,9 +270,9 @@ const createHallByUniversityAdmin = asyncHandler(async (req, res) => {
 // POST /api/university-admin/halls/:hallId/assign-admin — assign hallAdmin
 const assignHallAdmin = asyncHandler(async (req, res) => {
   const { hallId } = req.params;
-  const { userId } = req.body;
+  const { email } = req.body;
 
-  if (!userId) throw new ApiError(400, "userId is required");
+  if (!email) throw new ApiError(400, "email is required");
 
   // Verify hall belongs to this university
   const hall = await Hall.findOne({
@@ -242,10 +283,14 @@ const assignHallAdmin = asyncHandler(async (req, res) => {
 
   // Verify user belongs to this university
   const user = await User.findOne({
-    _id: userId,
+    email,
     university: req.user.university,
   });
-  if (!user) throw new ApiError(404, "User not found under your university");
+  if (!user)
+    throw new ApiError(
+      404,
+      "User with this email not found under your university",
+    );
 
   user.role = "hallAdmin";
   user.hall = hallId;
@@ -269,9 +314,143 @@ const assignHallAdmin = asyncHandler(async (req, res) => {
 // GET /api/university-admin/cross-hall-report — cross-hall stats
 const getCrossHallReport = asyncHandler(async (req, res) => {
   const universityId = req.user.university;
+  const halls = await Hall.find({ university: universityId });
 
-  const report = await Hall.aggregate([
-    { $match: { university: universityId } },
+  const report = await Promise.all(
+    halls.map(async (hall) => {
+      const [
+        totalStudents,
+        rooms,
+        pendingAllotments,
+        pendingTickets,
+        feedbacks,
+      ] = await Promise.all([
+        User.countDocuments({
+          hall: hall._id,
+          role: "student",
+          status: "active",
+        }),
+        Room.find({ hall: hall._id }).select("capacity occupants"),
+        RoomAllotment.countDocuments({ hall: hall._id, status: "pending" }),
+        SupportTicket.countDocuments({ hall: hall._id, status: "pending" }),
+        Feedback.find({ hall: hall._id, rating: { $gt: 0 } }).select("rating"),
+      ]);
+
+      const totalCapacity = rooms.reduce((s, r) => s + (r.capacity || 0), 0);
+      const totalOccupied = rooms.reduce(
+        (s, r) => s + (r.occupants?.length || 0),
+        0,
+      );
+      const occupancyRate =
+        totalCapacity > 0
+          ? Math.round((totalOccupied / totalCapacity) * 100)
+          : null;
+
+      const avgFeedbackRating = feedbacks.length
+        ? Number(
+            (
+              feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length
+            ).toFixed(1),
+          )
+        : null;
+
+      return {
+        hallId: hall._id,
+        hallName: hall.name,
+        totalStudents,
+        occupancyRate,
+        pendingAllotments,
+        pendingTickets,
+        avgFeedbackRating,
+      };
+    }),
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, report, "Cross-hall report"));
+});
+
+// ─── SUPER ADMIN ──────────────────────────────────────────
+
+// GET /api/super-admin/dashboard
+const superAdminDashboard = asyncHandler(async (req, res) => {
+  const [
+    totalUniversities,
+    totalHalls,
+    totalStudents,
+    totalHallAdmins,
+    totalUniversityAdmins,
+  ] = await Promise.all([
+    University.countDocuments(),
+    Hall.countDocuments(),
+    User.countDocuments({ role: "student", status: "active" }),
+    User.countDocuments({ role: "hallAdmin" }),
+    User.countDocuments({ role: "universityAdmin" }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        totalUniversities,
+        totalHalls,
+        totalStudents,
+        totalHallAdmins,
+        totalUniversityAdmins,
+      },
+      "Super admin dashboard",
+    ),
+  );
+});
+
+// GET /api/super-admin/universities — all universities, with assigned admin info
+const getAllUniversitiesAdmin = asyncHandler(async (req, res) => {
+  const universities = await University.find()
+    .populate("createdBy", "name email")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const universityIds = universities.map((u) => u._id);
+
+  // University model has no universityAdmin field — admin is tracked on the
+  // User side (user.university = universityId, user.role = "universityAdmin").
+  // Look it up separately and attach to each university for the frontend.
+  const uniAdmins = await User.find({
+    university: { $in: universityIds },
+    role: "universityAdmin",
+  }).select("name email university");
+
+  const adminByUniversity = {};
+  uniAdmins.forEach((admin) => {
+    adminByUniversity[admin.university.toString()] = {
+      name: admin.name,
+      email: admin.email,
+    };
+  });
+
+  const universitiesWithAdmin = universities.map((u) => ({
+    ...u,
+    universityAdmin: adminByUniversity[u._id.toString()] || null,
+  }));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, universitiesWithAdmin, "All universities"));
+});
+
+// GET /api/super-admin/universities/:id — university detail + its halls with summary
+const getUniversityDetail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const university = await University.findById(id).populate(
+    "createdBy",
+    "name email",
+  );
+  if (!university) throw new ApiError(404, "University not found");
+
+  const halls = await Hall.aggregate([
+    { $match: { university: university._id } },
     {
       $lookup: {
         from: "users",
@@ -295,15 +474,7 @@ const getCrossHallReport = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "rooms",
-        localField: "_id",
-        foreignField: "hall",
-        as: "rooms",
-      },
-    },
-    {
-      $lookup: {
-        from: "supporttickets",
+        from: "users",
         let: { hallId: "$_id" },
         pipeline: [
           {
@@ -311,14 +482,14 @@ const getCrossHallReport = asyncHandler(async (req, res) => {
               $expr: {
                 $and: [
                   { $eq: ["$hall", "$$hallId"] },
-                  { $eq: ["$status", "pending"] },
+                  { $eq: ["$role", "hallAdmin"] },
                 ],
               },
             },
           },
-          { $count: "count" },
+          { $project: { name: 1, email: 1 } },
         ],
-        as: "pendingTickets",
+        as: "hallAdmins",
       },
     },
     {
@@ -330,54 +501,51 @@ const getCrossHallReport = asyncHandler(async (req, res) => {
         studentCount: {
           $ifNull: [{ $arrayElemAt: ["$studentCount.count", 0] }, 0],
         },
-        roomCount: { $size: "$rooms" },
-        pendingTickets: {
-          $ifNull: [{ $arrayElemAt: ["$pendingTickets.count", 0] }, 0],
-        },
+        hallAdmins: 1,
       },
     },
   ]);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, report, "Cross-hall report"));
+    .json(
+      new ApiResponse(200, { university, halls }, "University detail fetched"),
+    );
 });
 
-// ─── SUPER ADMIN ──────────────────────────────────────────
+// GET /api/super-admin/halls/:id — hall detail + student count + occupancy
+const getHallDetail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-// GET /api/super-admin/dashboard
-const superAdminDashboard = asyncHandler(async (req, res) => {
-  const [totalUniversities, totalHalls, totalStudents, totalAdmins] =
-    await Promise.all([
-      University.countDocuments(),
-      Hall.countDocuments(),
-      User.countDocuments({ role: "student", status: "active" }),
-      User.countDocuments({ role: { $in: ["hallAdmin", "universityAdmin"] } }),
-    ]);
+  const hall = await Hall.findById(id).populate("university", "name code");
+  if (!hall) throw new ApiError(404, "Hall not found");
+
+  const [studentCount, hallAdmins, rooms] = await Promise.all([
+    User.countDocuments({ hall: id, role: "student", status: "active" }),
+    User.find({ hall: id, role: "hallAdmin" }).select("name email"),
+    Room.find({ hall: id }).select("roomNumber capacity occupants"),
+  ]);
+
+  const totalCapacity = rooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
+  const totalOccupied = rooms.reduce(
+    (sum, r) => sum + (r.occupants?.length || 0),
+    0,
+  );
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
-        totalUniversities,
-        totalHalls,
-        totalStudents,
-        totalAdmins,
+        hall,
+        studentCount,
+        hallAdmins,
+        roomCount: rooms.length,
+        totalCapacity,
+        totalOccupied,
       },
-      "Super admin dashboard",
+      "Hall detail fetched",
     ),
   );
-});
-
-// GET /api/super-admin/universities — all universities
-const getAllUniversitiesAdmin = asyncHandler(async (req, res) => {
-  const universities = await University.find()
-    .populate("createdBy", "name email")
-    .sort({ createdAt: -1 });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, universities, "All universities"));
 });
 
 // POST /api/super-admin/universities — onboard a new university
@@ -431,17 +599,17 @@ const updateUniversityStatus = asyncHandler(async (req, res) => {
 
 // POST /api/super-admin/assign-university-admin — assign universityAdmin role
 const assignUniversityAdmin = asyncHandler(async (req, res) => {
-  const { userId, universityId } = req.body;
+  const { email, university: universityId } = req.body;
 
-  if (!userId || !universityId) {
-    throw new ApiError(400, "userId and universityId are required");
+  if (!email || !universityId) {
+    throw new ApiError(400, "email and university are required");
   }
 
   const university = await University.findById(universityId);
   if (!university) throw new ApiError(404, "University not found");
 
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(404, "User not found");
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User with this email not found");
 
   user.role = "universityAdmin";
   user.university = universityId;
@@ -495,6 +663,8 @@ module.exports = {
   getCrossHallReport,
   // superAdmin
   superAdminDashboard,
+  getUniversityDetail,
+  getHallDetail,
   getAllUniversitiesAdmin,
   onboardUniversity,
   updateUniversityStatus,

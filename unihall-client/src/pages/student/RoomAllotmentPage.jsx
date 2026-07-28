@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import AppShell from "../../components/layout/AppShell";
 import api from "../../api/axios";
+import { SkeletonBox } from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
 
 const STATUS_CONFIG = {
   pending: {
@@ -26,6 +28,42 @@ const STATUS_CONFIG = {
 };
 
 const REQUEST_TYPES = ["new", "change", "cancel"];
+
+const RoomAllotmentPageSkeleton = () => (
+  <div>
+    <div style={{ marginBottom: "20px" }}>
+      <SkeletonBox
+        height="20px"
+        width="180px"
+        style={{ marginBottom: "8px" }}
+      />
+      <SkeletonBox height="12px" width="200px" />
+    </div>
+    <SkeletonBox height="52px" radius="16px" style={{ marginBottom: "20px" }} />
+    <SkeletonBox height="14px" width="160px" style={{ marginBottom: "12px" }} />
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+        gap: "16px",
+        marginBottom: "24px",
+      }}
+    >
+      {Array.from({ length: 3 }).map((_, i) => (
+        <SkeletonBox key={i} height="130px" radius="14px" />
+      ))}
+    </div>
+    <SkeletonBox height="14px" width="120px" style={{ marginBottom: "12px" }} />
+    {Array.from({ length: 2 }).map((_, i) => (
+      <SkeletonBox
+        key={i}
+        height="150px"
+        radius="18px"
+        style={{ marginBottom: "12px" }}
+      />
+    ))}
+  </div>
+);
 
 const RoomAllotmentPage = () => {
   const [rooms, setRooms] = useState([]);
@@ -83,26 +121,7 @@ const RoomAllotmentPage = () => {
   if (loading)
     return (
       <AppShell>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              border: "3px solid #e2e8f0",
-              borderTop: "3px solid #0d9488",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <RoomAllotmentPageSkeleton />
       </AppShell>
     );
 
@@ -168,130 +187,123 @@ const RoomAllotmentPage = () => {
           {rooms.filter((r) => r.status === "available").length})
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "16px",
-            marginBottom: "24px",
-          }}
-        >
-          {rooms
-            .filter((r) => r.status === "available")
-            .slice(0, 6)
-            .map((room, i) => (
-              <motion.div
-                key={room._id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.06 }}
-                style={{
-                  background: "white",
-                  borderRadius: "14px",
-                  padding: "14px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-                  border: "1px solid rgba(0,0,0,0.05)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      background: "linear-gradient(135deg, #f97316, #ea580c)",
-                      borderRadius: "10px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "16px",
-                    }}
-                  >
-                    🚪
-                  </div>
-                  <span
-                    style={{
-                      background: "rgba(16,185,129,0.1)",
-                      color: "#10b981",
-                      border: "1px solid rgba(16,185,129,0.3)",
-                      borderRadius: "20px",
-                      padding: "2px 8px",
-                      fontSize: "10px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    AVAILABLE
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontWeight: "700",
-                    fontSize: "15px",
-                    color: "#0f172a",
-                  }}
-                >
-                  Room {room.roomNumber}
-                </div>
-                <div
-                  style={{
-                    color: "#94a3b8",
-                    fontSize: "11px",
-                    marginTop: "3px",
-                  }}
-                >
-                  Floor {room.floor || "—"} • {room.type}
-                </div>
-                <div
-                  style={{
-                    marginTop: "8px",
-                    background: "#f8fafc",
-                    borderRadius: "8px",
-                    padding: "6px 8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>
-                    Occupants
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      color: "#0f172a",
-                    }}
-                  >
-                    {room.occupants?.length || 0}/{room.capacity}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-        </div>
-
-        {rooms.filter((r) => r.status === "available").length === 0 && (
+        {rooms.filter((r) => r.status === "available").length === 0 ? (
           <div
             style={{
               background: "white",
               borderRadius: "16px",
-              padding: "28px",
-              textAlign: "center",
               marginBottom: "24px",
               boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "32px", marginBottom: "8px" }}>🏠</div>
-            <div
-              style={{ color: "#64748b", fontWeight: "600", fontSize: "14px" }}
-            >
-              No rooms available
-            </div>
+            <EmptyState icon="🏠" title="No rooms available" />
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: "16px",
+              marginBottom: "24px",
+            }}
+          >
+            {rooms
+              .filter((r) => r.status === "available")
+              .slice(0, 6)
+              .map((room, i) => (
+                <motion.div
+                  key={room._id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.06 }}
+                  style={{
+                    background: "white",
+                    borderRadius: "14px",
+                    padding: "14px",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+                    border: "1px solid rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        background: "linear-gradient(135deg, #f97316, #ea580c)",
+                        borderRadius: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "16px",
+                      }}
+                    >
+                      🚪
+                    </div>
+                    <span
+                      style={{
+                        background: "rgba(16,185,129,0.1)",
+                        color: "#10b981",
+                        border: "1px solid rgba(16,185,129,0.3)",
+                        borderRadius: "20px",
+                        padding: "2px 8px",
+                        fontSize: "10px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      AVAILABLE
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: "700",
+                      fontSize: "15px",
+                      color: "#0f172a",
+                    }}
+                  >
+                    Room {room.roomNumber}
+                  </div>
+                  <div
+                    style={{
+                      color: "#94a3b8",
+                      fontSize: "11px",
+                      marginTop: "3px",
+                    }}
+                  >
+                    Floor {room.floor || "—"} • {room.type}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      background: "#f8fafc",
+                      borderRadius: "8px",
+                      padding: "6px 8px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <span style={{ fontSize: "11px", color: "#64748b" }}>
+                      Occupants
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        color: "#0f172a",
+                      }}
+                    >
+                      {room.occupants?.length || 0}/{room.capacity}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
           </div>
         )}
 
@@ -312,20 +324,14 @@ const RoomAllotmentPage = () => {
             style={{
               background: "white",
               borderRadius: "18px",
-              padding: "40px 20px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
-            <div style={{ fontWeight: "600", color: "#64748b" }}>
-              No allotment requests yet
-            </div>
-            <div
-              style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}
-            >
-              Submit a request to get a room
-            </div>
+            <EmptyState
+              icon="📋"
+              title="No allotment requests yet"
+              subtitle="Submit a request to get a room"
+            />
           </div>
         ) : (
           allotments.map((allotment, i) => {

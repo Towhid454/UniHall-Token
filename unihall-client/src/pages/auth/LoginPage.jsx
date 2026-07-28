@@ -4,35 +4,71 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import { getRoleHome } from "../../utils/roleRoutes";
+
+const getWelcomeMessage = (user) => {
+  if (user.role === "universityAdmin" && user.university?.name) {
+    return `Welcome to ${user.university.name}!`;
+  }
+  if (user.role === "hallAdmin" && user.hall?.name) {
+    return `Welcome to ${user.hall.name}!`;
+  }
+  if (user.role === "superAdmin") {
+    return "Welcome, Platform Admin!";
+  }
+  return `Welcome, ${user.name.split(" ")[0]}!`;
+};
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [showResend, setShowResend] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
 
-  const handleChange = (e) =>
+  const handleChange = (e) => {
+    setShowResend(false);
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.email || !form.password)
       return toast.error("All fields required");
     setLoading(true);
+    setShowResend(false);
     try {
       const res = await api.post("/auth/login", form);
       const { user, accessToken, refreshToken } = res.data.data;
       login(user, accessToken, refreshToken);
-      toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
-      if (user.role === "student") navigate("/dashboard");
-      else if (user.role === "hallAdmin") navigate("/admin/hall");
-      else if (user.role === "universityAdmin") navigate("/admin/university");
-      else navigate("/admin/super");
+      toast.success(getWelcomeMessage(user));
+      navigate(getRoleHome(user.role));
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      const message = err.response?.data?.message || "Login failed";
+      toast.error(message);
+      if (message.toLowerCase().includes("verify your email")) {
+        setShowResend(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!form.email) return toast.error("Enter your email first");
+    setResending(true);
+    try {
+      const res = await api.post("/auth/resend-verification", {
+        email: form.email,
+      });
+      toast.success(res.data.message);
+      setShowResend(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to resend email");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -238,6 +274,45 @@ const LoginPage = () => {
                 {showPass ? "🙈" : "👁️"}
               </button>
             </div>
+
+            {/* Resend verification prompt — only shows after "verify email" login error */}
+            {showResend && (
+              <div
+                style={{
+                  background: "rgba(245,158,11,0.1)",
+                  border: "1px solid rgba(245,158,11,0.3)",
+                  borderRadius: "10px",
+                  padding: "10px 12px",
+                  marginBottom: "12px",
+                  fontSize: "12px",
+                  color: "#fbbf24",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "8px",
+                }}
+              >
+                <span>Didn't get the email?</span>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  style={{
+                    background: "rgba(245,158,11,0.2)",
+                    border: "1px solid rgba(245,158,11,0.4)",
+                    borderRadius: "8px",
+                    padding: "5px 10px",
+                    color: "#fbbf24",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    cursor: resending ? "not-allowed" : "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {resending ? "Sending..." : "Resend link"}
+                </button>
+              </div>
+            )}
 
             {/* Forgot */}
             <div style={{ textAlign: "right", marginBottom: "20px" }}>

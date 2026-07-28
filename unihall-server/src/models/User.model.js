@@ -63,6 +63,15 @@ const userSchema = new mongoose.Schema(
     },
 
     refreshToken: { type: String },
+
+    // ── Email verification ──
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
+
+    // ── Password reset ──
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
   },
   { timestamps: true },
 );

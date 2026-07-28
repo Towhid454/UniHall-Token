@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   submitFeedback,
+  getMyFeedback,
   getHallFeedback,
   getFeedbackStats,
   createTicket,
@@ -15,6 +16,7 @@ router.use(protect);
 
 // Feedback
 router.post("/feedback", restrictTo("student"), submitFeedback);
+router.get("/feedback/my", restrictTo("student"), getMyFeedback);
 router.get("/feedback", restrictTo("hallAdmin"), getHallFeedback);
 router.get("/feedback/stats", restrictTo("hallAdmin"), getFeedbackStats);
 

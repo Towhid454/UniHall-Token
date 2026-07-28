@@ -7,12 +7,15 @@ const {
   createHall,
 } = require("../controllers/university.controller");
 
+// Import the auth middlewares
+const { protect, restrictTo } = require("../middlewares/auth.middleware");
+
 // Public routes — used by signup form dropdowns
 router.get("/", getAllUniversities);
 router.get("/:id/halls", getHallsByUniversity);
 
-// Protected routes — auth middleware added in Step 5
-router.post("/", createUniversity);
-router.post("/:id/halls", createHall);
+// Protected routes — Now actually protected!
+router.post("/", protect, restrictTo("superAdmin"), createUniversity);
+router.post("/:id/halls", protect, restrictTo("universityAdmin"), createHall);
 
 module.exports = router;

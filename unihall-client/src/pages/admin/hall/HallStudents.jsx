@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import AdminShell from "../../../components/layout/AdminShell";
 import api from "../../../api/axios";
+import { SkeletonBox } from "../../../components/ui/Skeleton";
+import EmptyState from "../../../components/ui/EmptyState";
 
 const STATUS_CONFIG = {
   active: {
@@ -21,6 +23,37 @@ const STATUS_CONFIG = {
     border: "rgba(239,68,68,0.3)",
   },
 };
+
+const StudentRowSkeleton = () => (
+  <div
+    style={{
+      background: "white",
+      borderRadius: "16px",
+      marginBottom: "10px",
+      padding: "14px 16px",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+      border: "1px solid rgba(0,0,0,0.05)",
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <SkeletonBox width="44px" height="44px" radius="13px" />
+      <div style={{ flex: 1 }}>
+        <SkeletonBox
+          height="14px"
+          width="40%"
+          style={{ marginBottom: "8px" }}
+        />
+        <SkeletonBox
+          height="11px"
+          width="55%"
+          style={{ marginBottom: "6px" }}
+        />
+        <SkeletonBox height="11px" width="30%" />
+      </div>
+      <SkeletonBox width="60px" height="18px" radius="20px" />
+    </div>
+  </div>
+);
 
 const HallStudents = () => {
   const [students, setStudents] = useState([]);
@@ -111,38 +144,24 @@ const HallStudents = () => {
         </div>
 
         {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "48px",
-            }}
-          >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                border: "3px solid #e2e8f0",
-                borderTop: "3px solid #6366f1",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }}
-            />
+          <div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <StudentRowSkeleton key={i} />
+            ))}
           </div>
         ) : students.length === 0 ? (
           <div
             style={{
               background: "white",
               borderRadius: "18px",
-              padding: "48px 20px",
-              textAlign: "center",
               boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>👥</div>
-            <div style={{ fontWeight: "600", color: "#64748b" }}>
-              No students found
-            </div>
+            <EmptyState
+              icon="👥"
+              title="No students found"
+              subtitle={search ? "Try a different search term." : ""}
+            />
           </div>
         ) : (
           students.map((student, i) => {
