@@ -25,7 +25,12 @@ const getTransporter = () => {
   const smtpConfig = getSmtpConfig();
   if (!smtpConfig) return null;
 
-  transporter = nodemailer.createTransport(smtpConfig);
+  transporter = nodemailer.createTransport({
+    ...smtpConfig,
+    connectionTimeout: 8000, // max 8s to establish TCP connection
+    greetingTimeout: 8000, // max 8s for SMTP server greeting
+    socketTimeout: 10000, // max 10s of socket inactivity
+  });
   return transporter;
 };
 
@@ -45,12 +50,22 @@ const sendEmail = async ({ to, subject, text }) => {
     return;
   }
 
-  await smtpTransporter.sendMail({
-    from,
-    to,
-    subject,
-    text,
-  });
+  try {
+    await smtpTransporter.sendMail({
+      from,
+      to,
+      subject,
+      text,
+    });
+  } catch (err) {
+    console.error("❌ Failed to send email via SMTP:", err.message);
+    console.log("\n📧 ───────────── EMAIL PREVIEW (send failed) ─────────────");
+    console.log(`To:      ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`\n${text}\n`);
+    console.log("────────────────────────────────────────────────────────\n");
+    // Don't re-throw — let the request complete even if email fails
+  }
 };
 
 const sendVerificationEmail = async (email, name, verifyUrl) => {
