@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const User = require("../models/User.model");
 const Hall = require("../models/Hall.model");
 const University = require("../models/University.model");
@@ -268,11 +269,17 @@ const createHallByUniversityAdmin = asyncHandler(async (req, res) => {
 });
 
 // POST /api/university-admin/halls/:hallId/assign-admin — assign hallAdmin
+// If the email doesn't belong to an existing user, a new account is created
+// and immediately marked emailVerified (the universityAdmin is vouching for
+// this person directly, so no email verification link is needed). The new
+// account gets a random password — the admin should use "Forgot Password"
+// to set their own on first login.
 const assignHallAdmin = asyncHandler(async (req, res) => {
   const { hallId } = req.params;
-  const { email } = req.body;
+  const { email, name } = req.body;
+  const normalizedEmail = String(email || "").trim().toLowerCase();
 
-  if (!email) throw new ApiError(400, "email is required");
+  if (!normalizedEmail) throw new ApiError(400, "email is required");
 
   // Verify hall belongs to this university
   const hall = await Hall.findOne({
@@ -281,20 +288,29 @@ const assignHallAdmin = asyncHandler(async (req, res) => {
   });
   if (!hall) throw new ApiError(404, "Hall not found under your university");
 
-  // Verify user belongs to this university
-  const user = await User.findOne({
-    email,
-    university: req.user.university,
-  });
-  if (!user)
-    throw new ApiError(
-      404,
-      "User with this email not found under your university",
-    );
+  let user = await User.findOne({ email: normalizedEmail });
+  let isNewUser = false;
 
-  user.role = "hallAdmin";
-  user.hall = hallId;
-  await user.save();
+  if (!user) {
+    isNewUser = true;
+    const tempPassword = crypto.randomBytes(9).toString("base64url");
+    user = await User.create({
+      name: name || normalizedEmail.split("@")[0],
+      email: normalizedEmail,
+      password: tempPassword,
+      role: "hallAdmin",
+      university: req.user.university,
+      hall: hallId,
+      emailVerified: true, // admin assigned directly by universityAdmin — no email link needed
+      status: "active",
+    });
+  } else {
+    user.role = "hallAdmin";
+    user.hall = hallId;
+    user.university = req.user.university;
+    user.emailVerified = true;
+    await user.save();
+  }
 
   return res.status(200).json(
     new ApiResponse(
@@ -305,8 +321,11 @@ const assignHallAdmin = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         hall: user.hall,
+        isNewUser,
       },
-      `${user.name} assigned as Hall Admin for ${hall.name}`,
+      isNewUser
+        ? `New account created and assigned as Hall Admin for ${hall.name}. Ask them to use "Forgot Password" to set their own password.`
+        : `${user.name} assigned as Hall Admin for ${hall.name}`,
     ),
   );
 });
@@ -598,22 +617,43 @@ const updateUniversityStatus = asyncHandler(async (req, res) => {
 });
 
 // POST /api/super-admin/assign-university-admin — assign universityAdmin role
+// If the email doesn't belong to an existing user, a new account is created
+// and immediately marked emailVerified (superAdmin is vouching for this
+// person directly, so no email verification link is needed). The new
+// account gets a random password — the admin should use "Forgot Password"
+// to set their own on first login.
 const assignUniversityAdmin = asyncHandler(async (req, res) => {
-  const { email, university: universityId } = req.body;
+  const { email, university: universityId, name } = req.body;
+  const normalizedEmail = String(email || "").trim().toLowerCase();
 
-  if (!email || !universityId) {
+  if (!normalizedEmail || !universityId) {
     throw new ApiError(400, "email and university are required");
   }
 
   const university = await University.findById(universityId);
   if (!university) throw new ApiError(404, "University not found");
 
-  const user = await User.findOne({ email });
-  if (!user) throw new ApiError(404, "User with this email not found");
+  let user = await User.findOne({ email: normalizedEmail });
+  let isNewUser = false;
 
-  user.role = "universityAdmin";
-  user.university = universityId;
-  await user.save();
+  if (!user) {
+    isNewUser = true;
+    const tempPassword = crypto.randomBytes(9).toString("base64url"); // random temp password
+    user = await User.create({
+      name: name || normalizedEmail.split("@")[0],
+      email: normalizedEmail,
+      password: tempPassword,
+      role: "universityAdmin",
+      university: universityId,
+      emailVerified: true, // admin assigned directly by superAdmin — no email link needed
+      status: "active",
+    });
+  } else {
+    user.role = "universityAdmin";
+    user.university = universityId;
+    user.emailVerified = true;
+    await user.save();
+  }
 
   return res.status(200).json(
     new ApiResponse(
@@ -624,8 +664,11 @@ const assignUniversityAdmin = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         university: user.university,
+        isNewUser,
       },
-      `${user.name} assigned as University Admin for ${university.name}`,
+      isNewUser
+        ? `New account created and assigned as University Admin for ${university.name}. Ask them to use "Forgot Password" to set their own password.`
+        : `${user.name} assigned as University Admin for ${university.name}`,
     ),
   );
 });
