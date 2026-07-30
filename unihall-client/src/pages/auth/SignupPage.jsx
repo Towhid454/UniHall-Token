@@ -12,10 +12,10 @@ const inputStyle = {
   boxSizing: "border-box",
   background: "rgba(255,255,255,0.07)",
   border: "1px solid rgba(255,255,255,0.15)",
-  borderRadius: "12px",
-  padding: "14px 14px 14px 44px",
+  borderRadius: "10px",
+  padding: "11px 12px 11px 38px",
   color: "#ffffff",
-  fontSize: "14px",
+  fontSize: "13px",
   outline: "none",
   fontFamily: "'Inter', sans-serif",
   transition: "border-color 0.2s",
@@ -84,17 +84,19 @@ const SignupPage = () => {
     <div
       style={{
         minHeight: "100vh",
+        height: "100vh",
         backgroundImage: `url(${CAMPUS_BG_URL})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "20px",
+        padding: "16px",
         position: "relative",
+        overflow: "hidden",
       }}
     >
-      {/* ডার্ক ওভারলে */}
+      {/* Dark overlay */}
       <div
         style={{
           position: "absolute",
@@ -105,18 +107,30 @@ const SignupPage = () => {
         }}
       />
 
-      {/* মেইন কার্ড */}
+      {/* Main card with scrollable inner content if needed */}
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        initial={{ opacity: 0, y: 20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         style={{
           position: "relative",
           zIndex: 2,
           width: "100%",
-          maxWidth: "440px",
+          maxWidth: "420px",
+          maxHeight: "95vh",
+          overflowY: "auto",
+          borderRadius: "28px",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
+        {/* Hide scrollbar for Chrome/Safari */}
+        <style>{`
+          div[style*="max-height: 95vh"]::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+
         <div
           style={{
             background: "rgba(255,255,255,0.06)",
@@ -124,35 +138,35 @@ const SignupPage = () => {
             WebkitBackdropFilter: "blur(24px)",
             border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "28px",
-            padding: "40px 32px",
+            padding: "28px 26px 26px",
             boxShadow:
               "0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
         >
-          {/* লোগো */}
-          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          {/* Logo */}
+          <div style={{ textAlign: "center", marginBottom: "14px" }}>
             <div
               style={{
-                width: "56px",
-                height: "56px",
+                width: "48px",
+                height: "48px",
                 background: "linear-gradient(135deg, #14b8a6, #0d9488)",
-                borderRadius: "16px",
+                borderRadius: "14px",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 24px rgba(13,148,136,0.35)",
-                marginBottom: "10px",
+                boxShadow: "0 8px 20px rgba(13,148,136,0.3)",
+                marginBottom: "6px",
               }}
             >
               <span
-                style={{ fontSize: "22px", fontWeight: "900", color: "white" }}
+                style={{ fontSize: "18px", fontWeight: "900", color: "white" }}
               >
                 U
               </span>
             </div>
             <div
               style={{
-                fontSize: "20px",
+                fontSize: "18px",
                 fontWeight: "700",
                 color: "white",
                 letterSpacing: "1px",
@@ -162,9 +176,9 @@ const SignupPage = () => {
             </div>
             <div
               style={{
-                fontSize: "12px",
-                color: "rgba(255,255,255,0.5)",
-                marginTop: "2px",
+                fontSize: "10px",
+                color: "rgba(255,255,255,0.4)",
+                marginTop: "1px",
                 letterSpacing: "2px",
               }}
             >
@@ -172,23 +186,23 @@ const SignupPage = () => {
             </div>
           </div>
 
-          {/* হেডার টেক্সট */}
-          <div style={{ marginBottom: "22px" }}>
+          {/* Header */}
+          <div style={{ marginBottom: "16px" }}>
             <div
               style={{
-                fontSize: "11px",
+                fontSize: "10px",
                 fontWeight: "600",
                 letterSpacing: "2px",
                 color: "#14b8a6",
                 textTransform: "uppercase",
-                marginBottom: "4px",
+                marginBottom: "2px",
               }}
             >
               Student Sign Up
             </div>
             <div
               style={{
-                fontSize: "22px",
+                fontSize: "20px",
                 fontWeight: "600",
                 color: "white",
               }}
@@ -197,27 +211,27 @@ const SignupPage = () => {
             </div>
             <div
               style={{
-                fontSize: "13px",
-                color: "rgba(255,255,255,0.5)",
-                marginTop: "4px",
+                fontSize: "12px",
+                color: "rgba(255,255,255,0.45)",
+                marginTop: "2px",
               }}
             >
               Takes less than a minute.
             </div>
           </div>
 
-          {/* ফর্ম */}
+          {/* Form */}
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* নাম */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {/* Name */}
               <div style={{ position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    left: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     zIndex: 1,
                   }}
                 >
@@ -237,15 +251,15 @@ const SignupPage = () => {
                 />
               </div>
 
-              {/* ইউনিভার্সিটি */}
+              {/* University */}
               <div style={{ position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    left: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     zIndex: 1,
                   }}
                 >
@@ -260,6 +274,7 @@ const SignupPage = () => {
                     appearance: "none",
                     cursor: "pointer",
                     color: form.universityId ? "#ffffff" : "rgba(255,255,255,0.4)",
+                    paddingRight: "12px",
                   }}
                 >
                   <option value="" disabled>
@@ -273,15 +288,15 @@ const SignupPage = () => {
                 </select>
               </div>
 
-              {/* হল */}
+              {/* Hall */}
               <div style={{ position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    left: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     zIndex: 1,
                   }}
                 >
@@ -298,6 +313,7 @@ const SignupPage = () => {
                     cursor: form.universityId ? "pointer" : "not-allowed",
                     opacity: form.universityId ? 1 : 0.5,
                     color: form.hallId ? "#ffffff" : "rgba(255,255,255,0.4)",
+                    paddingRight: "12px",
                   }}
                 >
                   <option value="" disabled>
@@ -311,15 +327,15 @@ const SignupPage = () => {
                 </select>
               </div>
 
-              {/* ইমেইল */}
+              {/* Email */}
               <div style={{ position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    left: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     zIndex: 1,
                   }}
                 >
@@ -339,15 +355,15 @@ const SignupPage = () => {
                 />
               </div>
 
-              {/* পাসওয়ার্ড */}
+              {/* Password */}
               <div style={{ position: "relative" }}>
                 <span
                   style={{
                     position: "absolute",
-                    left: "14px",
+                    left: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     zIndex: 1,
                   }}
                 >
@@ -359,7 +375,7 @@ const SignupPage = () => {
                   placeholder="Password (min 6 chars)"
                   value={form.password}
                   onChange={handleChange}
-                  style={{ ...inputStyle, paddingRight: "42px" }}
+                  style={{ ...inputStyle, paddingRight: "38px" }}
                   onFocus={(e) => (e.target.style.borderColor = "#14b8a6")}
                   onBlur={(e) =>
                     (e.target.style.borderColor = "rgba(255,255,255,0.15)")
@@ -370,21 +386,21 @@ const SignupPage = () => {
                   onClick={() => setShowPass(!showPass)}
                   style={{
                     position: "absolute",
-                    right: "14px",
+                    right: "12px",
                     top: "50%",
                     transform: "translateY(-50%)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "rgba(255,255,255,0.5)",
-                    fontSize: "16px",
+                    color: "rgba(255,255,255,0.4)",
+                    fontSize: "14px",
                   }}
                 >
                   {showPass ? "🙈" : "👁️"}
                 </button>
               </div>
 
-              {/* সাবমিট বাটন */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -395,14 +411,14 @@ const SignupPage = () => {
                     ? "#0d9488"
                     : "linear-gradient(135deg, #14b8a6, #0d9488)",
                   border: "none",
-                  borderRadius: "12px",
-                  padding: "14px",
+                  borderRadius: "10px",
+                  padding: "12px",
                   color: "white",
-                  fontSize: "15px",
+                  fontSize: "14px",
                   fontWeight: "600",
                   fontFamily: "'Inter', sans-serif",
                   cursor: loading ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 20px rgba(13,148,136,0.35)",
+                  boxShadow: "0 4px 16px rgba(13,148,136,0.35)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -412,8 +428,8 @@ const SignupPage = () => {
                 {loading ? (
                   <div
                     style={{
-                      width: "20px",
-                      height: "20px",
+                      width: "18px",
+                      height: "18px",
                       border: "2px solid rgba(255,255,255,0.3)",
                       borderTop: "2px solid white",
                       borderRadius: "50%",
@@ -427,13 +443,13 @@ const SignupPage = () => {
             </div>
           </form>
 
-          {/* লগইন লিংক */}
+          {/* Login Link */}
           <p
             style={{
               textAlign: "center",
-              color: "rgba(255,255,255,0.5)",
-              fontSize: "13px",
-              marginTop: "22px",
+              color: "rgba(255,255,255,0.45)",
+              fontSize: "12px",
+              marginTop: "16px",
               fontFamily: "'Inter', sans-serif",
             }}
           >
@@ -451,12 +467,13 @@ const SignupPage = () => {
           </p>
         </div>
 
+        {/* Footer */}
         <p
           style={{
             textAlign: "center",
-            color: "rgba(255,255,255,0.2)",
-            fontSize: "11px",
-            marginTop: "20px",
+            color: "rgba(255,255,255,0.15)",
+            fontSize: "10px",
+            marginTop: "12px",
           }}
         >
           © 2026 UniHall. All rights reserved.
@@ -473,6 +490,13 @@ const SignupPage = () => {
         select option {
           background: #1a2634;
           color: white;
+        }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+          -webkit-text-fill-color: white;
+          -webkit-box-shadow: 0 0 0px 1000px rgba(20,30,40,0.8) inset;
+          transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>
     </div>
