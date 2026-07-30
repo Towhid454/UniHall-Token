@@ -8,71 +8,66 @@ const modules = [
     icon: "👤",
     label: "Student Profile",
     path: "/profile",
-    accent: "#0d9488",
+    gradient: "linear-gradient(135deg, #0d9488, #0f766e)",
+    shadow: "rgba(13,148,136,0.35)",
   },
   {
     icon: "🍽️",
     label: "Today's Dining",
     path: "/dining/today",
-    accent: "#f59e0b",
+    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+    shadow: "rgba(245,158,11,0.35)",
   },
   {
     icon: "🥘",
     label: "Dining",
     path: "/dining",
-    accent: "#ef4444",
+    gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
+    shadow: "rgba(239,68,68,0.35)",
   },
   {
     icon: "💰",
     label: "Hall Fee",
     path: "/hall-fee",
-    accent: "#8b5cf6",
+    gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+    shadow: "rgba(139,92,246,0.35)",
   },
   {
     icon: "🚪",
     label: "Room Allotment",
     path: "/room",
-    accent: "#f97316",
+    gradient: "linear-gradient(135deg, #f97316, #ea580c)",
+    shadow: "rgba(249,115,22,0.35)",
   },
   {
     icon: "💳",
     label: "My Wallet",
     path: "/wallet",
-    accent: "#10b981",
+    gradient: "linear-gradient(135deg, #10b981, #059669)",
+    shadow: "rgba(16,185,129,0.35)",
   },
   {
     icon: "⭐",
     label: "Dining Review",
     path: "/dining/review",
-    accent: "#06b6d4",
+    gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    shadow: "rgba(6,182,212,0.35)",
   },
   {
     icon: "📣",
     label: "Hall Feedback",
     path: "/feedback",
-    accent: "#ec4899",
+    gradient: "linear-gradient(135deg, #ec4899, #db2777)",
+    shadow: "rgba(236,72,153,0.35)",
   },
   {
     icon: "🎧",
     label: "Support/Help",
     path: "/support",
-    accent: "#6366f1",
+    gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
+    shadow: "rgba(99,102,241,0.35)",
   },
 ];
-
-const statIcons = {
-  "Student ID": "🆔",
-  Department: "📚",
-  Session: "📅",
-  Status: "📌",
-};
-
-const statColors = {
-  "Student ID": "#0d9488",
-  Department: "#6366f1",
-  Session: "#f59e0b",
-  Status: "#22c55e",
-};
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -85,44 +80,59 @@ const DashboardPage = () => {
     { label: "Status", value: (user?.status || "active").toUpperCase() },
   ];
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "#22c55e";
-      case "inactive":
-        return "#ef4444";
-      default:
-        return "#f59e0b";
-    }
-  };
-
   return (
     <AppShell>
-      {/* Hero Banner - clean, focused */}
+      {/* Institutional Hero Banner */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
-          background: "linear-gradient(145deg, #0b1120 0%, #1a2332 100%)",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
           borderRadius: "20px",
-          padding: "28px 32px",
-          marginBottom: "24px",
-          border: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "16px",
+          padding: "32px 36px",
+          marginBottom: "28px",
+          position: "relative",
+          overflow: "hidden",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
         }}
       >
-        <div>
+        {/* Architectural watermark motif */}
+        <div
+          style={{
+            position: "absolute",
+            right: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            fontSize: "150px",
+            lineHeight: 1,
+            opacity: 0.045,
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        >
+          🏛️
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: "-40px",
+            bottom: "-60px",
+            width: "180px",
+            height: "180px",
+            background:
+              "radial-gradient(circle, rgba(13,148,136,0.22) 0%, transparent 70%)",
+            borderRadius: "50%",
+            pointerEvents: "none",
+          }}
+        />
+
+        <div style={{ position: "relative", zIndex: 1 }}>
           <div
             style={{
               color: "#94a3b8",
-              fontSize: "14px",
+              fontSize: "13.5px",
               fontWeight: 500,
-              marginBottom: "2px",
+              marginBottom: "6px",
             }}
           >
             Welcome back, {user?.name?.split(" ")[0]} 👋
@@ -130,121 +140,68 @@ const DashboardPage = () => {
           <div
             style={{
               color: "white",
-              fontSize: "24px",
+              fontSize: "26px",
               fontWeight: "700",
               letterSpacing: "-0.3px",
+              lineHeight: 1.25,
+              maxWidth: "600px",
             }}
           >
             {user?.hall?.name || "Your Hall"}
           </div>
-        </div>
-        <div
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            padding: "6px 16px",
-            borderRadius: "30px",
-            border: "1px solid rgba(255,255,255,0.06)",
-            color: "#cbd5e1",
-            fontSize: "13px",
-            fontWeight: 500,
-          }}
-        >
-          {new Date().toLocaleDateString("en-US", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-          })}
-        </div>
-      </motion.div>
 
-      {/* Stats Row - Modern metric cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-          gap: "16px",
-          marginBottom: "32px",
-        }}
-      >
-        {stats.map((stat) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
+          {/* Stat row with dividers */}
+          <div
             style={{
-              background: "white",
-              borderRadius: "16px",
-              padding: "18px 20px",
-              border: "1px solid rgba(0,0,0,0.04)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
               display: "flex",
-              alignItems: "center",
-              gap: "14px",
+              gap: "0",
+              marginTop: "26px",
+              background: "rgba(255,255,255,0.045)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: "16px",
+              overflow: "hidden",
+              maxWidth: "640px",
             }}
           >
-            <div
-              style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "12px",
-                background: `${statColors[stat.label]}15`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "20px",
-                flexShrink: 0,
-                color: statColors[stat.label],
-              }}
-            >
-              {statIcons[stat.label]}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            {stats.map((s, i) => (
               <div
+                key={i}
                 style={{
-                  color: "#64748b",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  marginBottom: "2px",
+                  flex: 1,
+                  padding: "18px 20px",
+                  borderRight:
+                    i < stats.length - 1
+                      ? "1px solid rgba(255,255,255,0.09)"
+                      : "none",
                 }}
               >
-                {stat.label}
+                <div
+                  style={{
+                    color: "#8b95a8",
+                    fontSize: "10.5px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.6px",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {s.label}
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: "17px",
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {s.value}
+                </div>
               </div>
-              <div
-                style={{
-                  color: "#0f172a",
-                  fontSize: "16px",
-                  fontWeight: "700",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                {stat.label === "Status" ? (
-                  <>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: getStatusColor(stat.value),
-                        boxShadow: `0 0 0 2px ${getStatusColor(stat.value)}25`,
-                        animation: "pulse-dot 2s ease-in-out infinite",
-                      }}
-                    />
-                    {stat.value}
-                  </>
-                ) : (
-                  stat.value
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
 
       {/* Quick Access */}
       <div
@@ -252,80 +209,76 @@ const DashboardPage = () => {
           fontSize: "17px",
           fontWeight: "700",
           color: "#0f172a",
-          marginBottom: "16px",
-          letterSpacing: "-0.2px",
+          marginBottom: "18px",
         }}
       >
         Quick Access
       </div>
-
-      {/* Modules Grid - Clean, modern, 4-col friendly */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(165px, 1fr))",
-          gap: "16px",
+          gridTemplateColumns: "repeat(auto-fill, minmax(195px, 1fr))",
+          gap: "18px",
         }}
       >
         {modules.map((mod, i) => (
           <motion.button
             key={mod.path}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.015, duration: 0.25 }}
-            whileHover={{
-              y: -6,
-              scale: 1.02,
-              transition: { type: "spring", stiffness: 400, damping: 15 },
-            }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.93 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.04 }}
+            whileHover={{ scale: 1.03, y: -4 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate(mod.path)}
             style={{
               background: "white",
-              border: "1px solid #f1f5f9",
-              borderRadius: "16px",
-              padding: "22px 10px 18px",
+              border: "none",
+              borderRadius: "20px",
+              padding: "30px 16px",
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "12px",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
-              transition: "box-shadow 0.2s ease, border-color 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow =
-                "0 12px 32px -8px rgba(0,0,0,0.08)";
-              e.currentTarget.style.borderColor = mod.accent + "40";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.02)";
-              e.currentTarget.style.borderColor = "#f1f5f9";
+              gap: "16px",
+              boxShadow: "0 2px 14px rgba(0,0,0,0.07)",
+              position: "relative",
+              overflow: "hidden",
+              transition: "box-shadow 0.2s",
             }}
           >
             <div
               style={{
-                width: "52px",
-                height: "52px",
-                borderRadius: "14px",
-                background: `${mod.accent}12`,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "4px",
+                background: mod.gradient,
+                borderRadius: "20px 20px 0 0",
+              }}
+            />
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                background: mod.gradient,
+                borderRadius: "18px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "22px",
-                color: mod.accent,
-                transition: "transform 0.2s ease",
+                fontSize: "28px",
+                boxShadow: `0 8px 20px ${mod.shadow}`,
               }}
             >
               {mod.icon}
             </div>
             <span
               style={{
-                fontSize: "13.5px",
-                fontWeight: "600",
+                fontSize: "14.5px",
+                fontWeight: "700",
                 color: "#1e293b",
                 textAlign: "center",
-                lineHeight: 1.3,
+                letterSpacing: "-0.1px",
               }}
             >
               {mod.label}
@@ -333,16 +286,6 @@ const DashboardPage = () => {
           </motion.button>
         ))}
       </div>
-
-      {/* Pulse animation for status dot */}
-      <style>
-        {`
-          @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.85); }
-          }
-        `}
-      </style>
     </AppShell>
   );
 };
