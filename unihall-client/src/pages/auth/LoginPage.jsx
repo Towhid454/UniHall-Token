@@ -6,17 +6,23 @@ import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { getRoleHome } from "../../utils/roleRoutes";
 
-const getWelcomeMessage = (user) => {
-  if (user.role === "universityAdmin" && user.university?.name) {
-    return `Welcome to ${user.university.name}!`;
-  }
-  if (user.role === "hallAdmin" && user.hall?.name) {
-    return `Welcome to ${user.hall.name}!`;
-  }
-  if (user.role === "superAdmin") {
-    return "Welcome, Platform Admin!";
-  }
-  return `Welcome, ${user.name.split(" ")[0]}!`;
+// Swap this for your own campus photo whenever you have one —
+// just replace the URL, nothing else needs to change.
+const CAMPUS_PHOTO_URL =
+  "https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?q=80&w=1600&auto=format&fit=crop";
+
+// Shared input style (exactly like SignupPage)
+const inputStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: "#FFFFFF",
+  border: "1px solid #E2DED3",
+  borderRadius: "10px",
+  padding: "13px 14px 13px 44px",
+  color: "#131826",
+  fontSize: "14px",
+  outline: "none",
+  fontFamily: "'Inter', sans-serif",
 };
 
 const LoginPage = () => {
@@ -43,7 +49,7 @@ const LoginPage = () => {
       const res = await api.post("/auth/login", form);
       const { user, accessToken, refreshToken } = res.data.data;
       login(user, accessToken, refreshToken);
-      toast.success(getWelcomeMessage(user));
+      toast.success(`Welcome${user.name ? " " + user.name.split(" ")[0] : ""}!`);
       navigate(getRoleHome(user.role));
     } catch (err) {
       const message = err.response?.data?.message || "Login failed";
@@ -73,339 +79,351 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "linear-gradient(135deg, #0f172a 0%, #0d2137 50%, #0f172a 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Blobs */}
-      <div
-        style={{
-          position: "absolute",
-          top: "-120px",
-          left: "-120px",
-          width: "400px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(13,148,136,0.35) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "-120px",
-          right: "-120px",
-          width: "400px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none",
-        }}
-      />
+    <div className="uh-wrap">
+      {/* LEFT — photo panel */}
+      <div className="uh-photo">
+        <div className="uh-photo-img" />
+        <div className="uh-photo-overlay" />
+        <div className="uh-seal-ring" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-        style={{
-          width: "100%",
-          maxWidth: "380px",
-          position: "relative",
-          zIndex: 10,
-        }}
-      >
-        {/* Card */}
-        <div
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "24px",
-            padding: "36px 32px",
-            boxShadow:
-              "0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-          }}
+        <div className="uh-brand">
+          <div className="uh-brand-mark">U</div>
+          <span className="uh-brand-word">UNIHALL</span>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="uh-photo-copy"
         >
-          {/* Logo */}
-          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+          <h1 className="uh-headline">
+            Where your hall
+            <br />
+            becomes home.
+          </h1>
+          <p className="uh-subline">
+            Room allotments, dining tokens, hall fees and support —
+            all in one account.
+          </p>
+        </motion.div>
+      </div>
+
+      {/* RIGHT — form panel */}
+      <div className="uh-form">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          style={{ width: "100%", maxWidth: "380px" }}
+        >
+          <div style={{ marginBottom: "26px" }}>
+            <div className="uh-form-eyebrow">Welcome Back</div>
+            <div className="uh-form-title">Sign in to your account</div>
             <div
               style={{
-                width: "60px",
-                height: "60px",
-                background: "linear-gradient(135deg, #14b8a6, #0d9488)",
-                borderRadius: "18px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 8px 24px rgba(13,148,136,0.4)",
-                marginBottom: "12px",
+                fontSize: "13px",
+                color: "#6B7280",
+                marginTop: "4px",
+                fontFamily: "'Inter', sans-serif",
               }}
             >
-              <span
-                style={{ fontSize: "22px", fontWeight: "900", color: "white" }}
-              >
-                U
-              </span>
+              Manage your hall, tokens, and fees.
             </div>
-            <div
-              style={{ fontSize: "22px", fontWeight: "700", color: "white" }}
-            >
-              UniHall
-            </div>
-            <div
-              style={{ fontSize: "13px", color: "#94a3b8", marginTop: "2px" }}
-            >
-              Smart Hall Management
-            </div>
-          </div>
-
-          <div
-            style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              color: "white",
-              marginBottom: "20px",
-            }}
-          >
-            Sign In
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Email */}
-            <div style={{ position: "relative", marginBottom: "12px" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "16px",
-                }}
-              >
-                ✉️
-              </span>
-              <input
-                type="email"
-                name="email"
-                placeholder="Student Email"
-                value={form.email}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: "12px",
-                  padding: "13px 14px 13px 40px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.15)")
-                }
-              />
-            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {/* Email */}
+              <div style={{ position: "relative" }}>
+                <span className="uh-icon">✉️</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Student Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  style={inputStyle}
+                  onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E2DED3")}
+                />
+              </div>
 
-            {/* Password */}
-            <div style={{ position: "relative", marginBottom: "8px" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "16px",
-                }}
-              >
-                🔒
-              </span>
-              <input
-                type={showPass ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={form.password}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: "12px",
-                  padding: "13px 42px 13px 40px",
-                  color: "white",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "rgba(255,255,255,0.15)")
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(!showPass)}
-                style={{
-                  position: "absolute",
-                  right: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#94a3b8",
-                  fontSize: "16px",
-                }}
-              >
-                {showPass ? "🙈" : "👁️"}
-              </button>
-            </div>
-
-            {/* Resend verification prompt — only shows after "verify email" login error */}
-            {showResend && (
-              <div
-                style={{
-                  background: "rgba(245,158,11,0.1)",
-                  border: "1px solid rgba(245,158,11,0.3)",
-                  borderRadius: "10px",
-                  padding: "10px 12px",
-                  marginBottom: "12px",
-                  fontSize: "12px",
-                  color: "#fbbf24",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "8px",
-                }}
-              >
-                <span>Didn't get the email?</span>
+              {/* Password */}
+              <div style={{ position: "relative" }}>
+                <span className="uh-icon">🔒</span>
+                <input
+                  type={showPass ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  style={{ ...inputStyle, paddingRight: "42px" }}
+                  onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E2DED3")}
+                />
                 <button
                   type="button"
-                  onClick={handleResend}
-                  disabled={resending}
-                  style={{
-                    background: "rgba(245,158,11,0.2)",
-                    border: "1px solid rgba(245,158,11,0.4)",
-                    borderRadius: "8px",
-                    padding: "5px 10px",
-                    color: "#fbbf24",
-                    fontSize: "11px",
-                    fontWeight: "700",
-                    cursor: resending ? "not-allowed" : "pointer",
-                    whiteSpace: "nowrap",
-                  }}
+                  onClick={() => setShowPass(!showPass)}
+                  className="uh-eye-btn"
                 >
-                  {resending ? "Sending..." : "Resend link"}
+                  {showPass ? "🙈" : "👁️"}
                 </button>
               </div>
-            )}
 
-            {/* Forgot */}
-            <div style={{ textAlign: "right", marginBottom: "20px" }}>
-              <Link
-                to="/forgot-password"
-                style={{
-                  color: "#14b8a6",
-                  fontSize: "12px",
-                  textDecoration: "none",
-                }}
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
-            {/* Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                background: loading
-                  ? "#0d9488"
-                  : "linear-gradient(135deg, #14b8a6, #0d9488)",
-                border: "none",
-                borderRadius: "12px",
-                padding: "14px",
-                color: "white",
-                fontSize: "15px",
-                fontWeight: "600",
-                cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 20px rgba(13,148,136,0.4)",
-                transition: "all 0.2s",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-            >
-              {loading ? (
+              {/* Resend verification prompt — only shows after "verify email" login error */}
+              {showResend && (
                 <div
                   style={{
-                    width: "20px",
-                    height: "20px",
-                    border: "2px solid rgba(255,255,255,0.3)",
-                    borderTop: "2px solid white",
-                    borderRadius: "50%",
-                    animation: "spin 0.8s linear infinite",
+                    background: "rgba(245,158,11,0.1)",
+                    border: "1px solid rgba(245,158,11,0.3)",
+                    borderRadius: "10px",
+                    padding: "10px 12px",
+                    fontSize: "12px",
+                    color: "#fbbf24",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "8px",
                   }}
-                />
-              ) : (
-                "Sign In"
+                >
+                  <span>Didn't get the email?</span>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending}
+                    style={{
+                      background: "rgba(245,158,11,0.2)",
+                      border: "1px solid rgba(245,158,11,0.4)",
+                      borderRadius: "8px",
+                      padding: "5px 10px",
+                      color: "#fbbf24",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      cursor: resending ? "not-allowed" : "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {resending ? "Sending..." : "Resend link"}
+                  </button>
+                </div>
               )}
-            </button>
+
+              {/* Forgot Password */}
+              <div style={{ textAlign: "right", marginTop: "-4px" }}>
+                <Link to="/forgot-password" className="uh-link" style={{ fontSize: "13px" }}>
+                  Forgot Password?
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <button type="submit" disabled={loading} className="uh-submit-btn">
+                {loading ? <div className="uh-spinner" /> : "Sign In"}
+              </button>
+            </div>
           </form>
 
           <p
             style={{
               textAlign: "center",
-              color: "#94a3b8",
+              color: "#6B7280",
               fontSize: "13px",
               marginTop: "20px",
+              fontFamily: "'Inter', sans-serif",
             }}
           >
             Don't have an account?{" "}
-            <Link
-              to="/signup"
-              style={{
-                color: "#14b8a6",
-                fontWeight: "600",
-                textDecoration: "none",
-              }}
-            >
+            <Link to="/signup" className="uh-link">
               Sign Up
             </Link>
           </p>
-        </div>
-
-        <p
-          style={{
-            textAlign: "center",
-            color: "#475569",
-            fontSize: "11px",
-            marginTop: "20px",
-          }}
-        >
-          © 2026 UniHall. All rights reserved.
-        </p>
-      </motion.div>
+        </motion.div>
+      </div>
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
         @keyframes spin { to { transform: rotate(360deg); } }
-        input::placeholder { color: #64748b; }
+        input::placeholder, select::placeholder { color: #94A3B8; }
+
+        .uh-wrap {
+          display: flex;
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .uh-photo {
+          flex: 1.15;
+          position: relative;
+          overflow: hidden;
+          min-height: 280px;
+        }
+        .uh-photo-img {
+          position: absolute;
+          inset: 0;
+          background-image: url('${CAMPUS_PHOTO_URL}');
+          background-size: cover;
+          background-position: center;
+        }
+        .uh-photo-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            165deg,
+            rgba(11,18,32,0.55) 0%,
+            rgba(11,18,32,0.88) 55%,
+            rgba(13,148,136,0.55) 100%
+          );
+        }
+        .uh-seal-ring {
+          position: absolute;
+          width: 420px;
+          height: 420px;
+          border-radius: 50%;
+          border: 1px solid rgba(232,177,76,0.35);
+          top: 8%;
+          right: -140px;
+          pointer-events: none;
+        }
+
+        .uh-brand {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 28px 32px 0;
+        }
+        .uh-brand-mark {
+          width: 34px;
+          height: 34px;
+          border-radius: 9px;
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Fraunces', serif;
+          font-weight: 700;
+          color: white;
+          font-size: 15px;
+        }
+        .uh-brand-word {
+          color: rgba(255,255,255,0.9);
+          letter-spacing: 3px;
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .uh-photo-copy {
+          position: relative;
+          z-index: 2;
+          padding: 32px;
+          max-width: 480px;
+          margin-top: 40vh;
+        }
+        .uh-headline {
+          font-family: 'Fraunces', serif;
+          font-weight: 600;
+          font-size: 40px;
+          line-height: 1.15;
+          color: white;
+          margin: 0 0 14px;
+        }
+        .uh-subline {
+          font-size: 15px;
+          line-height: 1.6;
+          color: rgba(255,255,255,0.75);
+          margin: 0;
+        }
+
+        .uh-form {
+          flex: 1;
+          background: #F6F3EC;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 32px;
+        }
+        .uh-form-eyebrow {
+          font-family: 'Inter', sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 2px;
+          color: #0d9488;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+        }
+        .uh-form-title {
+          font-family: 'Fraunces', serif;
+          font-weight: 600;
+          font-size: 26px;
+          color: #131826;
+        }
+
+        .uh-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 15px;
+          z-index: 1;
+        }
+        .uh-eye-btn {
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 15px;
+        }
+
+        .uh-submit-btn {
+          width: 100%;
+          margin-top: 6px;
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          border: none;
+          border-radius: 10px;
+          padding: 14px;
+          color: white;
+          font-size: 15px;
+          font-weight: 600;
+          font-family: 'Inter', sans-serif;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(13,148,136,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .uh-submit-btn:disabled {
+          cursor: not-allowed;
+          opacity: 0.75;
+        }
+        .uh-spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .uh-link {
+          color: #0d9488;
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        @media (max-width: 900px) {
+          .uh-wrap { flex-direction: column; }
+          .uh-photo { flex: none; height: 260px; min-height: 260px; }
+          .uh-photo-copy { margin-top: 0; padding: 22px; }
+          .uh-headline { font-size: 28px; }
+          .uh-subline { display: none; }
+          .uh-seal-ring { width: 260px; height: 260px; right: -100px; top: -40px; }
+          .uh-form { flex: none; padding: 32px 20px 56px; }
+        }
       `}</style>
     </div>
   );
