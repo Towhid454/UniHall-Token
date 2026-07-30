@@ -8,57 +8,71 @@ const modules = [
     icon: "👤",
     label: "Student Profile",
     path: "/profile",
-    gradient: "linear-gradient(135deg, #0d9488, #0f766e)",
+    accent: "#0d9488",
   },
   {
     icon: "🍽️",
     label: "Today's Dining",
     path: "/dining/today",
-    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
+    accent: "#f59e0b",
   },
   {
     icon: "🥘",
     label: "Dining",
     path: "/dining",
-    gradient: "linear-gradient(135deg, #ef4444, #dc2626)",
+    accent: "#ef4444",
   },
   {
     icon: "💰",
     label: "Hall Fee",
     path: "/hall-fee",
-    gradient: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+    accent: "#8b5cf6",
   },
   {
     icon: "🚪",
     label: "Room Allotment",
     path: "/room",
-    gradient: "linear-gradient(135deg, #f97316, #ea580c)",
+    accent: "#f97316",
   },
   {
     icon: "💳",
     label: "My Wallet",
     path: "/wallet",
-    gradient: "linear-gradient(135deg, #10b981, #059669)",
+    accent: "#10b981",
   },
   {
     icon: "⭐",
     label: "Dining Review",
     path: "/dining/review",
-    gradient: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    accent: "#06b6d4",
   },
   {
     icon: "📣",
     label: "Hall Feedback",
     path: "/feedback",
-    gradient: "linear-gradient(135deg, #ec4899, #db2777)",
+    accent: "#ec4899",
   },
   {
     icon: "🎧",
     label: "Support/Help",
     path: "/support",
-    gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
+    accent: "#6366f1",
   },
 ];
+
+const statIcons = {
+  "Student ID": "🆔",
+  Department: "📚",
+  Session: "📅",
+  Status: "📌",
+};
+
+const statColors = {
+  "Student ID": "#0d9488",
+  Department: "#6366f1",
+  Session: "#f59e0b",
+  Status: "#22c55e",
+};
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -84,230 +98,230 @@ const DashboardPage = () => {
 
   return (
     <AppShell>
-      {/* Hero Banner - Clean & Professional */}
+      {/* Hero Banner - clean, focused */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
-          background: "linear-gradient(145deg, #0f172a 0%, #1e293b 100%)",
+          background: "linear-gradient(145deg, #0b1120 0%, #1a2332 100%)",
           borderRadius: "20px",
           padding: "28px 32px",
-          marginBottom: "28px",
+          marginBottom: "24px",
           border: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
         }}
       >
-        {/* Header Row */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "12px",
-            marginBottom: "20px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                color: "#94a3b8",
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "2px",
-              }}
-            >
-              Welcome back, {user?.name?.split(" ")[0]} 👋
-            </div>
-            <div
-              style={{
-                color: "white",
-                fontSize: "24px",
-                fontWeight: "700",
-                letterSpacing: "-0.3px",
-              }}
-            >
-              {user?.hall?.name || "Your Hall"}
-            </div>
+        <div>
+          <div
+            style={{
+              color: "#94a3b8",
+              fontSize: "14px",
+              fontWeight: 500,
+              marginBottom: "2px",
+            }}
+          >
+            Welcome back, {user?.name?.split(" ")[0]} 👋
           </div>
           <div
             style={{
-              background: "rgba(255,255,255,0.06)",
-              padding: "6px 14px",
-              borderRadius: "20px",
-              border: "1px solid rgba(255,255,255,0.06)",
-              color: "#cbd5e1",
-              fontSize: "12px",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
+              color: "white",
+              fontSize: "24px",
+              fontWeight: "700",
+              letterSpacing: "-0.3px",
             }}
           >
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}
+            {user?.hall?.name || "Your Hall"}
           </div>
         </div>
-
-        {/* Stats Row - Minimal Card style */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-            gap: "1px",
-            background: "rgba(255,255,255,0.04)",
-            borderRadius: "12px",
+            background: "rgba(255,255,255,0.06)",
+            padding: "6px 16px",
+            borderRadius: "30px",
             border: "1px solid rgba(255,255,255,0.06)",
-            overflow: "hidden",
+            color: "#cbd5e1",
+            fontSize: "13px",
+            fontWeight: 500,
           }}
         >
-          {stats.map((s, i) => (
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      </motion.div>
+
+      {/* Stats Row - Modern metric cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+          gap: "16px",
+          marginBottom: "32px",
+        }}
+      >
+        {stats.map((stat) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "18px 20px",
+              border: "1px solid rgba(0,0,0,0.04)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+            }}
+          >
             <div
-              key={i}
               style={{
-                padding: "14px 18px",
-                background: "rgba(255,255,255,0.02)",
-                borderRight:
-                  i < stats.length - 1
-                    ? "1px solid rgba(255,255,255,0.05)"
-                    : "none",
+                width: "44px",
+                height: "44px",
+                borderRadius: "12px",
+                background: `${statColors[stat.label]}15`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "20px",
+                flexShrink: 0,
+                color: statColors[stat.label],
               }}
             >
+              {statIcons[stat.label]}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  color: "#8b95a8",
-                  fontSize: "10px",
+                  color: "#64748b",
+                  fontSize: "11px",
                   fontWeight: 600,
                   textTransform: "uppercase",
-                  letterSpacing: "0.6px",
-                  marginBottom: "4px",
+                  letterSpacing: "0.5px",
+                  marginBottom: "2px",
                 }}
               >
-                {s.label}
+                {stat.label}
               </div>
               <div
                 style={{
-                  color: "white",
-                  fontWeight: "600",
-                  fontSize: "15px",
+                  color: "#0f172a",
+                  fontSize: "16px",
+                  fontWeight: "700",
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
                 }}
               >
-                {s.label === "Status" ? (
+                {stat.label === "Status" ? (
                   <>
                     <span
                       style={{
                         display: "inline-block",
-                        width: "7px",
-                        height: "7px",
+                        width: "8px",
+                        height: "8px",
                         borderRadius: "50%",
-                        background: getStatusColor(s.value),
+                        background: getStatusColor(stat.value),
+                        boxShadow: `0 0 0 2px ${getStatusColor(stat.value)}25`,
+                        animation: "pulse-dot 2s ease-in-out infinite",
                       }}
                     />
-                    {s.value}
+                    {stat.value}
                   </>
                 ) : (
-                  s.value
+                  stat.value
                 )}
               </div>
             </div>
-          ))}
-        </div>
-      </motion.div>
+          </motion.div>
+        ))}
+      </div>
 
-      {/* Quick Access Title */}
+      {/* Quick Access */}
       <div
         style={{
           fontSize: "17px",
           fontWeight: "700",
           color: "#0f172a",
-          marginBottom: "18px",
+          marginBottom: "16px",
           letterSpacing: "-0.2px",
         }}
       >
         Quick Access
       </div>
 
-      {/* Modules Grid - Clean cards with just hover lift */}
+      {/* Modules Grid - Clean, modern, 4-col friendly */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(195px, 1fr))",
-          gap: "18px",
+          gridTemplateColumns: "repeat(auto-fill, minmax(165px, 1fr))",
+          gap: "16px",
         }}
       >
         {modules.map((mod, i) => (
           <motion.button
             key={mod.path}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.02, duration: 0.3 }}
+            transition={{ delay: i * 0.015, duration: 0.25 }}
             whileHover={{
-              y: -4,
+              y: -6,
               scale: 1.02,
               transition: { type: "spring", stiffness: 400, damping: 15 },
             }}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate(mod.path)}
             style={{
               background: "white",
-              border: "1px solid rgba(0,0,0,0.04)",
+              border: "1px solid #f1f5f9",
               borderRadius: "16px",
-              padding: "24px 12px 20px",
+              padding: "22px 10px 18px",
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "14px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              gap: "12px",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
               transition: "box-shadow 0.2s ease, border-color 0.2s ease",
             }}
-            // Hover shadow handled via CSS in style tag below
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow =
-                "0 8px 24px rgba(0,0,0,0.08)";
-              e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
+                "0 12px 32px -8px rgba(0,0,0,0.08)";
+              e.currentTarget.style.borderColor = mod.accent + "40";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)";
-              e.currentTarget.style.borderColor = "rgba(0,0,0,0.04)";
+              e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.02)";
+              e.currentTarget.style.borderColor = "#f1f5f9";
             }}
           >
-            {/* Top accent line */}
             <div
               style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "3px",
-                background: mod.gradient,
-                borderRadius: "16px 16px 0 0",
-              }}
-            />
-            <div
-              style={{
-                width: "56px",
-                height: "56px",
-                background: mod.gradient,
-                borderRadius: "16px",
+                width: "52px",
+                height: "52px",
+                borderRadius: "14px",
+                background: `${mod.accent}12`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
-                color: "white",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                flexShrink: 0,
+                fontSize: "22px",
+                color: mod.accent,
+                transition: "transform 0.2s ease",
               }}
             >
               {mod.icon}
             </div>
             <span
               style={{
-                fontSize: "14px",
+                fontSize: "13.5px",
                 fontWeight: "600",
                 color: "#1e293b",
                 textAlign: "center",
@@ -319,6 +333,16 @@ const DashboardPage = () => {
           </motion.button>
         ))}
       </div>
+
+      {/* Pulse animation for status dot */}
+      <style>
+        {`
+          @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+          }
+        `}
+      </style>
     </AppShell>
   );
 };
