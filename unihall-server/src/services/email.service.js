@@ -1,44 +1,54 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Gmail SMTP ট্রান্সপোর্টার তৈরি করুন
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,      // smtp.gmail.com
-  port: Number(process.env.SMTP_PORT), // 587
-  secure: false,                    // TLS
-  auth: {
-    user: process.env.SMTP_USER,    // your_email@gmail.com
-    pass: process.env.SMTP_PASS,    // 16-digit App Password
-  },
-});
+let resendClient;
+const getResendClient = () => {
+  if (resendClient) return resendClient;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  resendClient = new Resend(apiKey);
+  return resendClient;
+};
 
-// সাধারণ ইমেইল পাঠানোর ফাংশন (যেকোনো টেমপ্লেটের জন্য)
 const sendEmail = async ({ to, subject, text, html }) => {
-  try {
-    const mailOptions = {
-      from: `"UniHall" <${process.env.SMTP_USER}>`, // 'from' হিসেবে SMTP_USER বসবে
-      to,
-      subject,
-      text,
-      html,
-    };
+  const from = process.env.MAIL_FROM || "UniHall <onboarding@resend.dev>";
+  const client = getResendClient();
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${to} (Message ID: ${info.messageId})`);
-    return info;
-  } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
-    // ইমেইল ফেইল করলেও আমরা থ্রো করব না, বরং লগ করে দেব
-    // যাতে সাইনআপ প্রক্রিয়া থেমে না যায়
-    console.log("\n📧 ───────────── EMAIL PREVIEW (sending failed) ─────────────");
+  if (!client) {
+    console.warn(
+      "RESEND_API_KEY is not set. Email was not sent. Set RESEND_API_KEY and MAIL_FROM in .env."
+    );
+    console.log("\n📧 ───────────── EMAIL PREVIEW (not sent) ─────────────");
     console.log(`To:      ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(`\n${text || html}\n`);
-    console.log("──────────────────────────────────────────────────────────────\n");
-    // throw error; // প্রয়োজনে আনকমেন্ট করে দিতে পারেন
+    console.log("────────────────────────────────────────────────────────\n");
+    return;
+  }
+
+  try {
+    const { data, error } = await client.emails.send({
+      from,
+      to,
+      subject,
+      html: html || text, // use html if provided, else plain text
+    });
+
+    if (error) {
+      throw new Error(error.message || "Unknown Resend error");
+    }
+
+    console.log(`✅ Email sent via Resend (id: ${data?.id}) to ${to}`);
+  } catch (err) {
+    console.error("❌ Failed to send email via Resend:", err.message);
+    console.log("\n📧 ───────────── EMAIL PREVIEW (send failed) ─────────────");
+    console.log(`To:      ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`\n${text || html}\n`);
+    console.log("────────────────────────────────────────────────────────\n");
+    // Don't throw – let the request complete even if email fails
   }
 };
 
-// ভেরিফিকেশন ইমেইল
 const sendVerificationEmail = async (email, name, verifyUrl) => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
@@ -69,7 +79,6 @@ const sendVerificationEmail = async (email, name, verifyUrl) => {
   });
 };
 
-// পাসওয়ার্ড রিসেট ইমেইল
 const sendPasswordResetEmail = async (email, name, resetUrl) => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
