@@ -83,6 +83,10 @@ const WalletPage = () => {
   const [amount, setAmount] = useState("");
   const [depositing, setDepositing] = useState(false);
 
+  // Simulation state machine
+  const [simStep, setSimStep] = useState("idle"); // idle | redirecting | paying | processing | success
+  const [fakeTxnId, setFakeTxnId] = useState("");
+
   const fetchWallet = async () => {
     try {
       const res = await api.get("/wallet/me");
@@ -99,23 +103,68 @@ const WalletPage = () => {
     fetchWallet();
   }, []);
 
-  const handleDeposit = async () => {
+  // Start the simulated payment flow
+  const startSimulation = async () => {
     const amt = Number(amount);
     if (!amt || amt <= 0) return toast.error("Enter a valid amount");
     if (amt > 50000) return toast.error("Max deposit is ৳50,000");
+
     setDepositing(true);
+    setSimStep("redirecting");
+
+    // Step 1: Show redirecting state (1.5s)
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // Step 2: Show fake payment page
+    const txnId = `TXN_SIM_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    setFakeTxnId(txnId);
+    setSimStep("paying");
+    setDepositing(false);
+  };
+
+  // Complete the simulated payment (user clicked "Pay Now" on fake page)
+  const completePayment = async () => {
+    const amt = Number(amount);
+    setSimStep("processing");
+    setDepositing(true);
+
+    // Step 3: Show processing state (2s)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Step 4: Actually call the backend to save the deposit
     try {
       const res = await api.post("/wallet/deposit", { amount: amt });
-      toast.success(`৳${amt} deposited successfully!`);
       setWallet((prev) => ({ ...prev, balance: res.data.data.balance }));
+
+      // Add a fake transaction to the list for immediate UI feedback
+      const newTx = {
+        _id: `fake_${Date.now()}`,
+        type: "deposit",
+        amount: amt,
+        description: "Deposit via SSLCommerz (Simulated)",
+        createdAt: new Date().toISOString(),
+      };
+      setTransactions((prev) => [newTx, ...prev]);
+
+      toast.success(`৳${amt} deposited successfully! (Simulated)`);
       setAmount("");
       setShowDeposit(false);
-      fetchWallet();
+      setSimStep("idle");
+      setDepositing(false);
+      fetchWallet(); // Refresh from backend
     } catch (err) {
       toast.error(err.response?.data?.message || "Deposit failed");
-    } finally {
+      setSimStep("idle");
       setDepositing(false);
     }
+  };
+
+  const closeModal = () => {
+    if (depositing) return; // Prevent closing during processing
+    setShowDeposit(false);
+    setSimStep("idle");
+    setDepositing(false);
+    setAmount("");
   };
 
   const QUICK_AMOUNTS = [500, 1000, 2000, 5000];
@@ -127,10 +176,302 @@ const WalletPage = () => {
       </AppShell>
     );
 
+  // Render dynamic modal content based on simStep
+  const renderModalContent = () => {
+    // Step: Redirecting
+    if (simStep === "redirecting") {
+      return (
+        <div style={{ textAlign: "center", padding: "30px 0" }}>
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              border: "3px solid #e2e8f0",
+              borderTop: "3px solid #3b82f6",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto 16px",
+            }}
+          />
+          <h3 style={{ color: "#0f172a", fontSize: "16px", marginBottom: "4px" }}>
+            Redirecting to SSLCommerz...
+          </h3>
+          <p style={{ color: "#64748b", fontSize: "13px" }}>
+            Please wait while we secure your payment.
+          </p>
+        </div>
+      );
+    }
+
+    // Step: Fake Payment Page (shows card details)
+    if (simStep === "paying") {
+      return (
+        <div>
+          <div
+            style={{
+              background: "rgba(59,130,246,0.08)",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "20px",
+              border: "1px solid rgba(59,130,246,0.15)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "13px",
+                color: "#475569",
+                marginBottom: "6px",
+              }}
+            >
+              <span>Transaction ID</span>
+              <span style={{ fontWeight: "600", color: "#0f172a" }}>
+                {fakeTxnId}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "13px",
+                color: "#475569",
+              }}
+            >
+              <span>Amount</span>
+              <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                ৳{Number(amount).toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "#f8fafc",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "20px",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: "14px", color: "#475569" }}>
+              Pay with <strong>Test Card</strong>
+            </div>
+            <div
+              style={{
+                fontFamily: "monospace",
+                fontSize: "16px",
+                color: "#0f172a",
+                marginTop: "4px",
+                letterSpacing: "1px",
+              }}
+            >
+              4242 4242 4242 4242
+            </div>
+            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "4px" }}>
+              Exp: 12/25 &nbsp; CVV: 111
+            </div>
+          </div>
+
+          <button
+            onClick={completePayment}
+            disabled={depositing}
+            style={{
+              width: "100%",
+              padding: "14px",
+              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+              border: "none",
+              borderRadius: "12px",
+              color: "white",
+              fontSize: "15px",
+              fontWeight: "700",
+              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(59,130,246,0.35)",
+            }}
+          >
+            Pay ৳{Number(amount).toFixed(2)}
+          </button>
+        </div>
+      );
+    }
+
+    // Step: Processing
+    if (simStep === "processing") {
+      return (
+        <div style={{ textAlign: "center", padding: "30px 0" }}>
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              border: "3px solid #e2e8f0",
+              borderTop: "3px solid #22c55e",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto 16px",
+            }}
+          />
+          <h3 style={{ color: "#0f172a", fontSize: "16px", marginBottom: "4px" }}>
+            Processing Payment...
+          </h3>
+          <p style={{ color: "#64748b", fontSize: "13px" }}>
+            Please do not close this window.
+          </p>
+        </div>
+      );
+    }
+
+    // Default: Idle (Deposit Form)
+    return (
+      <>
+        <div
+          style={{
+            background: "rgba(59,130,246,0.08)",
+            border: "1px solid rgba(59,130,246,0.15)",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ color: "#64748b", fontSize: "13px" }}>
+            Current Balance
+          </span>
+          <span
+            style={{ color: "#3b82f6", fontWeight: "800", fontSize: "16px" }}
+          >
+            ৳{(wallet?.balance || 0).toFixed(2)}
+          </span>
+        </div>
+
+        <div style={{ marginBottom: "16px" }}>
+          <label
+            style={{
+              fontSize: "12px",
+              color: "#64748b",
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Enter Amount (৳)
+          </label>
+          <div style={{ position: "relative" }}>
+            <span
+              style={{
+                position: "absolute",
+                left: "14px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#0d9488",
+              }}
+            >
+              ৳
+            </span>
+            <input
+              type="number"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              min="1"
+              max="50000"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                background: "#f8fafc",
+                border: "2px solid #e2e8f0",
+                borderRadius: "12px",
+                padding: "14px 14px 14px 34px",
+                fontSize: "20px",
+                fontWeight: "700",
+                color: "#0f172a",
+                outline: "none",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
+              onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          {QUICK_AMOUNTS.map((q) => (
+            <button
+              key={q}
+              onClick={() => setAmount(String(q))}
+              style={{
+                background: amount == q ? "rgba(13,148,136,0.1)" : "#f8fafc",
+                border: `1.5px solid ${amount == q ? "#0d9488" : "#e2e8f0"}`,
+                borderRadius: "10px",
+                padding: "10px 4px",
+                color: amount == q ? "#0d9488" : "#64748b",
+                fontSize: "13px",
+                fontWeight: "700",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              ৳{q >= 1000 ? `${q / 1000}k` : q}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={startSimulation}
+          disabled={depositing || !amount}
+          style={{
+            width: "100%",
+            padding: "15px",
+            background: amount
+              ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+              : "#e2e8f0",
+            border: "none",
+            borderRadius: "14px",
+            color: amount ? "white" : "#94a3b8",
+            fontSize: "15px",
+            fontWeight: "700",
+            cursor: amount && !depositing ? "pointer" : "not-allowed",
+            boxShadow: amount ? "0 4px 16px rgba(59,130,246,0.35)" : "none",
+            transition: "all 0.2s",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {depositing ? (
+            <div
+              style={{
+                width: "20px",
+                height: "20px",
+                border: "2px solid rgba(255,255,255,0.3)",
+                borderTop: "2px solid white",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+          ) : amount ? (
+            `Deposit ৳${Number(amount).toFixed(2)}`
+          ) : (
+            "Enter an amount"
+          )}
+        </button>
+      </>
+    );
+  };
+
   return (
     <AppShell>
       <div>
-        {/* Balance Card */}
+        {/* Balance Card (unchanged) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,7 +486,6 @@ const WalletPage = () => {
             boxShadow: "0 12px 32px rgba(59,130,246,0.35)",
           }}
         >
-          {/* Decorative circles */}
           <div
             style={{
               position: "absolute",
@@ -194,10 +534,12 @@ const WalletPage = () => {
               ৳{(wallet?.balance || 0).toFixed(2)}
             </div>
 
-            {/* Action Buttons */}
             <div style={{ display: "flex", gap: "10px" }}>
               <button
-                onClick={() => setShowDeposit(true)}
+                onClick={() => {
+                  setShowDeposit(true);
+                  setSimStep("idle");
+                }}
                 style={{
                   flex: 1,
                   background: "rgba(255,255,255,0.2)",
@@ -235,7 +577,7 @@ const WalletPage = () => {
           </div>
         </motion.div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats (unchanged) */}
         <div
           style={{
             display: "grid",
@@ -312,7 +654,7 @@ const WalletPage = () => {
           ))}
         </div>
 
-        {/* Transaction History */}
+        {/* Transaction History (unchanged) */}
         <div
           style={{
             fontSize: "15px",
@@ -367,7 +709,6 @@ const WalletPage = () => {
                         : "none",
                   }}
                 >
-                  {/* Icon */}
                   <div
                     style={{
                       width: "40px",
@@ -383,8 +724,6 @@ const WalletPage = () => {
                   >
                     {info.icon}
                   </div>
-
-                  {/* Description */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
@@ -417,8 +756,6 @@ const WalletPage = () => {
                       })}
                     </div>
                   </div>
-
-                  {/* Amount */}
                   <div
                     style={{
                       fontSize: "14px",
@@ -436,7 +773,7 @@ const WalletPage = () => {
         )}
       </div>
 
-      {/* Deposit Modal */}
+      {/* Deposit Modal - Dynamic based on simStep */}
       <AnimatePresence>
         {showDeposit && (
           <div
@@ -450,7 +787,7 @@ const WalletPage = () => {
               alignItems: "flex-end",
               justifyContent: "center",
             }}
-            onClick={() => setShowDeposit(false)}
+            onClick={closeModal}
           >
             <motion.div
               initial={{ y: "100%" }}
@@ -461,12 +798,12 @@ const WalletPage = () => {
               style={{
                 background: "white",
                 borderRadius: "24px 24px 0 0",
-                padding: "24px 20px 48px",
+                padding: "24px 20px 32px",
                 width: "100%",
                 maxWidth: "480px",
               }}
             >
-              {/* Handle */}
+              {/* Handle bar */}
               <div
                 style={{
                   width: "36px",
@@ -477,6 +814,7 @@ const WalletPage = () => {
                 }}
               />
 
+              {/* Header */}
               <div
                 style={{
                   display: "flex",
@@ -492,180 +830,43 @@ const WalletPage = () => {
                     color: "#0f172a",
                   }}
                 >
-                  ⬇️ Deposit Money
+                  {simStep === "paying"
+                    ? "🔒 Secure Payment"
+                    : simStep === "processing"
+                    ? "⏳ Processing"
+                    : simStep === "redirecting"
+                    ? "⏳ Redirecting"
+                    : "⬇️ Deposit Money"}
                 </span>
-                <button
-                  onClick={() => setShowDeposit(false)}
-                  style={{
-                    background: "#f1f5f9",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "6px 12px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Current Balance */}
-              <div
-                style={{
-                  background: "rgba(59,130,246,0.08)",
-                  border: "1px solid rgba(59,130,246,0.15)",
-                  borderRadius: "12px",
-                  padding: "12px 16px",
-                  marginBottom: "20px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ color: "#64748b", fontSize: "13px" }}>
-                  Current Balance
-                </span>
-                <span
-                  style={{
-                    color: "#3b82f6",
-                    fontWeight: "800",
-                    fontSize: "16px",
-                  }}
-                >
-                  ৳{(wallet?.balance || 0).toFixed(2)}
-                </span>
-              </div>
-
-              {/* Amount Input */}
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "#64748b",
-                    fontWeight: "600",
-                    display: "block",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Enter Amount (৳)
-                </label>
-                <div style={{ position: "relative" }}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: "14px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      fontSize: "16px",
-                      fontWeight: "700",
-                      color: "#0d9488",
-                    }}
-                  >
-                    ৳
-                  </span>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    min="1"
-                    max="50000"
-                    style={{
-                      width: "100%",
-                      boxSizing: "border-box",
-                      background: "#f8fafc",
-                      border: "2px solid #e2e8f0",
-                      borderRadius: "12px",
-                      padding: "14px 14px 14px 34px",
-                      fontSize: "20px",
-                      fontWeight: "700",
-                      color: "#0f172a",
-                      outline: "none",
-                    }}
-                    onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                    onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
-                  />
-                </div>
-              </div>
-
-              {/* Quick Amounts */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "8px",
-                  marginBottom: "20px",
-                }}
-              >
-                {QUICK_AMOUNTS.map((q) => (
+                {simStep === "idle" && (
                   <button
-                    key={q}
-                    onClick={() => setAmount(String(q))}
+                    onClick={closeModal}
                     style={{
-                      background:
-                        amount == q ? "rgba(13,148,136,0.1)" : "#f8fafc",
-                      border: `1.5px solid ${amount == q ? "#0d9488" : "#e2e8f0"}`,
-                      borderRadius: "10px",
-                      padding: "10px 4px",
-                      color: amount == q ? "#0d9488" : "#64748b",
-                      fontSize: "13px",
-                      fontWeight: "700",
+                      background: "#f1f5f9",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "6px 12px",
                       cursor: "pointer",
-                      transition: "all 0.15s",
+                      fontSize: "14px",
                     }}
                   >
-                    ৳{q >= 1000 ? `${q / 1000}k` : q}
+                    ✕
                   </button>
-                ))}
+                )}
               </div>
 
-              <button
-                onClick={handleDeposit}
-                disabled={depositing || !amount}
-                style={{
-                  width: "100%",
-                  padding: "15px",
-                  background: amount
-                    ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
-                    : "#e2e8f0",
-                  border: "none",
-                  borderRadius: "14px",
-                  color: amount ? "white" : "#94a3b8",
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  cursor: amount && !depositing ? "pointer" : "not-allowed",
-                  boxShadow: amount
-                    ? "0 4px 16px rgba(59,130,246,0.35)"
-                    : "none",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {depositing ? (
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      border: "2px solid rgba(255,255,255,0.3)",
-                      borderTop: "2px solid white",
-                      borderRadius: "50%",
-                      animation: "spin 0.8s linear infinite",
-                    }}
-                  />
-                ) : amount ? (
-                  `Deposit ৳${Number(amount).toFixed(2)}`
-                ) : (
-                  "Enter an amount"
-                )}
-              </button>
+              {/* Dynamic Content */}
+              {renderModalContent()}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </AppShell>
   );
 };
