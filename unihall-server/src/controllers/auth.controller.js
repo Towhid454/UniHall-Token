@@ -75,8 +75,11 @@ const signup = asyncHandler(async (req, res) => {
   const existingUser = await User.findOne({ email: normalizedEmail });
   if (existingUser) throw new ApiError(409, "Email already registered");
 
-  const { rawToken, hashedToken } = generateHashedToken();
-
+  // ----------------------------------------------
+  // EMAIL VERIFICATION IS DISABLED:
+  //  - emailVerified set to true immediately
+  //  - No token generated / no email sent
+  // ----------------------------------------------
   const user = await User.create({
     name,
     email: normalizedEmail,
@@ -84,13 +87,12 @@ const signup = asyncHandler(async (req, res) => {
     university: universityId,
     hall: hallId,
     role: "student",
-    emailVerified: false,
-    emailVerificationToken: hashedToken,
-    emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    emailVerified: true, // <-- instantly verified
   });
 
-  const verifyUrl = getVerifyUrl(rawToken);
-  await sendVerificationEmail(user.email, user.name, verifyUrl);
+  // (Optional) If you still want to send a welcome email later, you can uncomment:
+  // const verifyUrl = getVerifyUrl(rawToken);
+  // await sendVerificationEmail(user.email, user.name, verifyUrl);
 
   const created = await User.findById(user._id).select(SAFE_SELECT);
 
@@ -100,12 +102,12 @@ const signup = asyncHandler(async (req, res) => {
       new ApiResponse(
         201,
         created,
-        "Account created. Please check your email to verify your account before signing in.",
+        "Account created. You can now log in directly (email verification disabled).",
       ),
     );
 });
 
-// POST|GET /api/auth/verify-email
+// POST|GET /api/auth/verify-email (kept for future use, but currently unused)
 const verifyEmail = asyncHandler(async (req, res) => {
   const token = req.body?.token || req.query?.token;
   if (!token) throw new ApiError(400, "Verification token is required");
@@ -143,7 +145,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Email verified successfully"));
 });
 
-// POST /api/auth/resend-verification
+// POST /api/auth/resend-verification (still works but all users are already verified)
 const resendVerification = asyncHandler(async (req, res) => {
   const normalizedEmail = normalizeEmail(req.body?.email);
   if (!normalizedEmail) throw new ApiError(400, "Email is required");
@@ -153,7 +155,7 @@ const resendVerification = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email: normalizedEmail });
 
-  // Don't reveal whether the account exists or is already verified
+  // Since everyone is verified now, this will always return the generic message.
   if (!user || user.emailVerified) {
     return res.status(200).json(new ApiResponse(200, {}, genericMessage));
   }
@@ -169,7 +171,7 @@ const resendVerification = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, genericMessage));
 });
 
-// POST /api/auth/login
+// POST /api/auth/login (email verification check removed)
 const login = asyncHandler(async (req, res) => {
   const { password } = req.body;
   const normalizedEmail = normalizeEmail(req.body?.email);
@@ -190,20 +192,8 @@ const login = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) throw new ApiError(401, "Invalid credentials");
 
-  if (!user.emailVerified) {
-    const { rawToken, hashedToken } = generateHashedToken();
-    user.emailVerificationToken = hashedToken;
-    user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
-    await user.save({ validateBeforeSave: false });
-
-    const verifyUrl = getVerifyUrl(rawToken);
-    await sendVerificationEmail(user.email, user.name, verifyUrl);
-
-    throw new ApiError(
-      403,
-      "Please verify your email before logging in. A new verification email has been sent.",
-    );
-  }
+  // --- Email verification check is REMOVED ---
+  // Users can log in even if emailVerified is false (which it never is now).
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id,
@@ -282,7 +272,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email: normalizedEmail });
 
-  // Don't reveal whether the account exists (prevents email enumeration)
   if (!user) {
     return res.status(200).json(new ApiResponse(200, {}, genericMessage));
   }
@@ -317,10 +306,10 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(400, "Reset link is invalid or has expired");
 
-  user.password = newPassword; // pre-save hook re-hashes this automatically
+  user.password = newPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  user.refreshToken = undefined; // force re-login on all devices for security
+  user.refreshToken = undefined;
   await user.save();
 
   return res
