@@ -12,9 +12,12 @@ const {
   sendPasswordResetEmail,
 } = require("../services/email.service");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
 };
 
 const SAFE_SELECT =
